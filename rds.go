@@ -1,6 +1,5 @@
 package main
 
-// TODO: add parameter groups
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"

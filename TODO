@@ -1,0 +1,28 @@
+* Add config example
+* Update README
+* Add TODO
+* Add tests
+* use logrus: https://github.com/sirupsen/logrus
+* ec2.go add support for retagging:
+  * ELB
+  * ELB v2
+  * ALB
+  * autoscaling & launch config
+  * security groups
+  * EBS
+* rds.go: add parameter groups retagging
+* cloudfront.go: retag streaming distributions
+* add AWS services:
+  * API Gateway
+  * Kinesis
+  * Dynamodb
+  * DataPipeline
+  * Elasticache
+  * ElasticBeanstalk
+  * S3
+  * Lambda
+  * Route53
+  * Simpledb
+  * SQS
+  * XRay
+* Add docker build

@@ -1,9 +1,5 @@
 package main
 
-// TODO: add ELB & ALB
-// TODO: autoscaling & launch config
-// TODO: security groups
-// TODO: EBS
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"

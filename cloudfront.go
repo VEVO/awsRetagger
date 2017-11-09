@@ -7,8 +7,6 @@ import (
 	"log"
 )
 
-//TODO: streaming distributions
-
 // CloudFrontProcessor holds the cloudfront-related actions
 type CloudFrontProcessor struct {
 	svc *cloudfront.CloudFront

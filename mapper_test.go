@@ -31,7 +31,7 @@ func TestLoadConfig(t *testing.T) {
 				},
 				TagMap:           []*TagMapper{{Source: &TagItem{Name: "Name", Value: ".*prod.*"}, Destination: []*TagItem{{Name: "Env", Value: "prd"}}}},
 				CopyTag:          []*TagCopy{{Source: []string{"ENVIRONMENT", "ENVIRONMETNT", "Account"}, Destination: "Env"}},
-				Sanity:           []*TagSanity{{TagName: "Env", Transform: map[string][]string{"prd": []string{"prod", "production", "global"}, "stg": []string{"staging"}, "dev": []string{"development"}}}},
+				Sanity:           []*TagSanity{{TagName: "Env", Transform: map[string][]string{"prd": {"prod", "production", "global"}, "stg": {"staging"}, "dev": {"development"}}}},
 				DefaultTagValues: map[string]string{"Env": "unknown", "Team": "unknown", "Service": "unknown"},
 			},
 		},
@@ -156,38 +156,38 @@ func TestValidateTag(t *testing.T) {
 		{"", "", Mapper{}, TagItem{Name: "", Value: ""}, NewErrSanityNoMapping("No sanity configuration found for the tag ")},
 		{"foo", "bar", Mapper{
 			Sanity: []*TagSanity{
-				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
-				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": {"sys.*", "devops", "drunks"}, "web": {"frontend", "html"}, "ricard": {}}},
 			},
 		}, TagItem{Name: "foo", Value: "bar"}, NewErrSanityNoMapping("No sanity configuration found for the tag foo")},
 		{"team", "drunks", Mapper{
 			Sanity: []*TagSanity{
-				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
-				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": {"sys.*", "devops", "drunks"}, "web": {"frontend", "html"}, "ricard": {}}},
 			},
 		}, TagItem{Name: "team", Value: "infrastructure"}, nil},
 		{"env", "local", Mapper{
 			Sanity: []*TagSanity{
-				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
-				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": {"sys.*", "devops", "drunks"}, "web": {"frontend", "html"}, "ricard": {}}},
 			},
 		}, TagItem{Name: "env", Value: "local"}, NewErrSanityNoMapping("No match found for the sanity check for local on tag {\"env\": \"local\"}")},
 		{"env", "production", Mapper{
 			Sanity: []*TagSanity{
-				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
-				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": {"sys.*", "devops", "drunks"}, "web": {"frontend", "html"}, "ricard": {}}},
 			},
 		}, TagItem{Name: "env", Value: "prd"}, nil},
 		{"team", "web", Mapper{
 			Sanity: []*TagSanity{
-				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
-				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": {"sys.*", "devops", "drunks"}, "web": {"frontend", "html"}, "ricard": {}}},
 			},
 		}, TagItem{Name: "team", Value: "web"}, nil},
 		{"team", "ricard", Mapper{
 			Sanity: []*TagSanity{
-				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
-				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": {"sys.*", "devops", "drunks"}, "web": {"frontend", "html"}, "ricard": {}}},
 			},
 		}, TagItem{Name: "team", Value: "ricard"}, nil},
 	}

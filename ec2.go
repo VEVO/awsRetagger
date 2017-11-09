@@ -37,14 +37,14 @@ func (e *Ec2Processor) TagsToMap(tagsInput []*ec2.Tag) map[string]string {
 
 // SetTag sets a tag on an ec2 resource
 func (e *Ec2Processor) SetTag(resourceID *string, tag *TagItem) error {
-	_, err := e.svc.CreateTags(&ec2.CreateTagsInput{Resources: []*string{resourceID}, Tags: []*ec2.Tag{&ec2.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)}}})
+	_, err := e.svc.CreateTags(&ec2.CreateTagsInput{Resources: []*string{resourceID}, Tags: []*ec2.Tag{{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)}}})
 	return err
 }
 
 // RetagInstances parses all running and stopped instances and retags them
 func (e *Ec2Processor) RetagInstances(m *Mapper) {
 	filters := []*ec2.Filter{
-		&ec2.Filter{
+		{
 			Name:   aws.String("instance-state-name"),
 			Values: []*string{aws.String("running"), aws.String("stopped")},
 		},

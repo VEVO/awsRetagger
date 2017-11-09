@@ -171,7 +171,7 @@ func TestValidateTag(t *testing.T) {
 				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
 				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
 			},
-		}, TagItem{Name: "env", Value: "local"}, NewErrSanityNoMapping("No match found for the sanity check for local on tag env")},
+		}, TagItem{Name: "env", Value: "local"}, NewErrSanityNoMapping("No match found for the sanity check for local on tag {\"env\": \"local\"}")},
 		{"env", "production", Mapper{
 			Sanity: []*TagSanity{
 				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},

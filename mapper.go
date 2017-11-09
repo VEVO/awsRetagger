@@ -296,7 +296,7 @@ func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []strin
 		}
 		// log.Printf("[DEBUG] Setting tag %s to %s for instance %s\n", (*finalTag).Name, (*finalTag).Value, *resourceID)
 		if err = setTag(resourceID, finalTag); err != nil {
-			log.Printf("[ERROR] While setting tag on resource %s: $s\n", *resourceID, err.Error())
+			log.Printf("[ERROR] While setting tag on resource %s: %s\n", *resourceID, err.Error())
 		}
 	}
 }

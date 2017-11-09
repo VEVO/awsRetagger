@@ -1,0 +1,239 @@
+package main
+
+import (
+	"reflect"
+	"strings"
+	"testing"
+)
+
+func TestLoadConfig(t *testing.T) {
+	testData := []struct {
+		input    string
+		expected Mapper
+	}{
+		{"{}", Mapper{}},
+		{
+			`{
+				"keys": [
+						{"pattern": ".*production.*", "destination": [{"name": "Env", "value": "prd"}]},
+  					{"pattern": ".*apache.*", "destination": [{"name": "Team", "value": "web"}, {"name": "Component", "value": "apache"}]}
+					],
+					"tags": [{"source": {"name": "Name", "value": ".*prod.*"}, "destination":[ {"name": "Env", "value": "prd"} ]}],
+					"copy_tags": [{"sources": ["ENVIRONMENT", "ENVIRONMETNT", "Account"], "destination": "Env"}],
+					"sanity": [{"tag_name": "Env", "remap": { "prd": ["prod", "production","global"], "stg": ["staging"], "dev": ["development"] }}],
+					"defaults": {"Env": "unknown", "Team": "unknown", "Service": "unknown"}
+
+			}`,
+			Mapper{
+				KeyMap: []*KeyMapper{
+					{KeyPattern: ".*production.*", Destination: []*TagItem{{Name: "Env", Value: "prd"}}},
+					{KeyPattern: ".*apache.*", Destination: []*TagItem{{Name: "Team", Value: "web"}, {Name: "Component", Value: "apache"}}},
+				},
+				TagMap:           []*TagMapper{{Source: &TagItem{Name: "Name", Value: ".*prod.*"}, Destination: []*TagItem{{Name: "Env", Value: "prd"}}}},
+				CopyTag:          []*TagCopy{{Source: []string{"ENVIRONMENT", "ENVIRONMETNT", "Account"}, Destination: "Env"}},
+				Sanity:           []*TagSanity{{TagName: "Env", Transform: map[string][]string{"prd": []string{"prod", "production", "global"}, "stg": []string{"staging"}, "dev": []string{"development"}}}},
+				DefaultTagValues: map[string]string{"Env": "unknown", "Team": "unknown", "Service": "unknown"},
+			},
+		},
+	}
+
+	for _, d := range testData {
+		m := Mapper{}
+		if err := m.LoadConfig(strings.NewReader(d.input)); err != nil {
+			t.Fatalf("[ERROR] LoadConfig returned: %s\n", err)
+		}
+		if !reflect.DeepEqual(d.expected, m) {
+			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expected, m)
+		}
+	}
+}
+
+func TestGetFromTags(t *testing.T) {
+	testData := []struct {
+		input, expected map[string]string
+		config          Mapper
+	}{
+		{map[string]string{}, map[string]string{}, Mapper{}},
+		{
+			map[string]string{},
+			map[string]string{},
+			Mapper{
+				CopyTag: []*TagCopy{
+					{Source: []string{"ENVIRONMENT.*", "ENVIRONMETNT", "Account"}, Destination: "env"},
+					{Source: []string{"unit", "band", "TeAm"}, Destination: "team"},
+					{Source: []string{"application", "app", "project", "aplicaiton"}, Destination: "team"},
+				},
+			},
+		},
+		{
+			map[string]string{"ENVIRONMENT-BLA": "regex bla", "Account": "should not be evaluated", "team": "already present", "unit": "should not be evaluated", "aplIcaitOn": "case insensitive match", "Name": "foo-bar-stg"},
+			map[string]string{"env": "regex bla", "service": "case insensitive match", "component": "foo", "artist": "bar"},
+			Mapper{
+				CopyTag: []*TagCopy{
+					{Source: []string{"ENVIRONMENT.*", "ENVIRONMETNT", "Account"}, Destination: "env"},
+					{Source: []string{"unit", "band", "TeAm"}, Destination: "team"},
+					{Source: []string{"application", "app", "project", "aplicaiton"}, Destination: "service"},
+				},
+				TagMap: []*TagMapper{
+					{Source: &TagItem{Name: "Name", Value: ".*foo-.*stg.*"}, Destination: []*TagItem{{Name: "env", Value: "stg"}, {Name: "component", Value: "foo"}}},
+					{Source: &TagItem{Name: "Name", Value: ".*foo.*"}, Destination: []*TagItem{{Name: "artist", Value: "bar"}, {Name: "component", Value: "foo that should not show"}}},
+				},
+			},
+		},
+	}
+
+	for _, d := range testData {
+		res, err := d.config.GetFromTags(&d.input)
+		if err != nil {
+			t.Fatalf("[ERROR] GetFromTags returned: %s\n", err)
+		}
+		if !reflect.DeepEqual(d.expected, *res) {
+			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expected, *res)
+		}
+	}
+}
+
+func TestGetFromKey(t *testing.T) {
+	testData := []struct {
+		inputKey            string
+		inputTags, expected map[string]string
+		config              Mapper
+	}{
+		{"", map[string]string{}, map[string]string{}, Mapper{}},
+		{
+			"nothing matches", map[string]string{}, map[string]string{},
+			Mapper{
+				KeyMap: []*KeyMapper{
+					{KeyPattern: ".*-emr-.*", Destination: []*TagItem{{Name: "service", Value: "EMR"}}},
+				},
+			},
+		},
+		{
+			"prod-emr-analytics", map[string]string{"random": "tag"},
+			map[string]string{"service": "EMR", "environment": "prd", "team": "analytics"},
+			Mapper{
+				KeyMap: []*KeyMapper{
+					{KeyPattern: ".*-emr-.*", Destination: []*TagItem{{Name: "service", Value: "EMR"}}},
+					{KeyPattern: ".*prod.*", Destination: []*TagItem{{Name: "environment", Value: "prd"}}},
+					{KeyPattern: ".*analytics.*", Destination: []*TagItem{{Name: "team", Value: "analytics"}, {Name: "service", Value: "should be ignored"}}},
+					{KeyPattern: ".*foo.*", Destination: []*TagItem{{Name: "component", Value: "foo"}}},
+				},
+			},
+		},
+		{
+			"prod-emr-analytics", map[string]string{"team": "data", "foo": "bar"},
+			map[string]string{"service": "EMR", "environment": "prd"},
+			Mapper{
+				KeyMap: []*KeyMapper{
+					{KeyPattern: ".*-emr-.*", Destination: []*TagItem{{Name: "service", Value: "EMR"}}},
+					{KeyPattern: ".*prod.*", Destination: []*TagItem{{Name: "environment", Value: "prd"}}},
+					{KeyPattern: ".*analytics.*", Destination: []*TagItem{{Name: "team", Value: "analytics"}, {Name: "service", Value: "should be ignored"}}},
+					{KeyPattern: ".*foo.*", Destination: []*TagItem{{Name: "component", Value: "foo"}}},
+				},
+			},
+		},
+	}
+
+	for _, d := range testData {
+		res, err := d.config.GetFromKey(d.inputKey, &d.inputTags)
+		if err != nil {
+			t.Fatalf("[ERROR] GetFromKey returned: %s\n", err)
+		}
+		if !reflect.DeepEqual(d.expected, *res) {
+			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expected, *res)
+		}
+	}
+
+}
+
+func TestValidateTag(t *testing.T) {
+	testData := []struct {
+		tagName, tagValue string
+		config            Mapper
+		expectedTag       TagItem
+		expectedError     error
+	}{
+		{"", "", Mapper{}, TagItem{Name: "", Value: ""}, NewErrSanityNoMapping("No sanity configuration found for the tag ")},
+		{"foo", "bar", Mapper{
+			Sanity: []*TagSanity{
+				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+			},
+		}, TagItem{Name: "foo", Value: "bar"}, NewErrSanityNoMapping("No sanity configuration found for the tag foo")},
+		{"team", "drunks", Mapper{
+			Sanity: []*TagSanity{
+				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+			},
+		}, TagItem{Name: "team", Value: "infrastructure"}, nil},
+		{"env", "local", Mapper{
+			Sanity: []*TagSanity{
+				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+			},
+		}, TagItem{Name: "env", Value: "local"}, NewErrSanityNoMapping("No match found for the sanity check for local on tag env")},
+		{"env", "production", Mapper{
+			Sanity: []*TagSanity{
+				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+			},
+		}, TagItem{Name: "env", Value: "prd"}, nil},
+		{"team", "web", Mapper{
+			Sanity: []*TagSanity{
+				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+			},
+		}, TagItem{Name: "team", Value: "web"}, nil},
+		{"team", "ricard", Mapper{
+			Sanity: []*TagSanity{
+				{TagName: "env", Transform: map[string][]string{"prd": []string{"prod.*", "global", "pdr"}, "stg": []string{"stag.*", "sgt"}, "dev": []string{"dev.*"}}},
+				{TagName: "team", Transform: map[string][]string{"infrastructure": []string{"sys.*", "devops", "drunks"}, "web": []string{"frontend", "html"}, "ricard": []string{}}},
+			},
+		}, TagItem{Name: "team", Value: "ricard"}, nil},
+	}
+	for _, d := range testData {
+		res, err := d.config.ValidateTag(d.tagName, d.tagValue)
+		if !reflect.DeepEqual(err, d.expectedError) {
+			t.Errorf("[ERROR] GetFromKey returned: %s. Expecting: %s\n", err, d.expectedError)
+		}
+		if !reflect.DeepEqual(d.expectedTag, *res) {
+			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expectedTag, *res)
+		}
+	}
+}
+
+func TestStripDefaults(t *testing.T) {
+	testData := []struct {
+		input, expected map[string]string
+		config          Mapper
+	}{
+		{map[string]string{}, map[string]string{}, Mapper{}},
+		{map[string]string{"Env": "unknown", "owner": "Jack Skeleton"}, map[string]string{"Env": "unknown", "owner": "Jack Skeleton"}, Mapper{DefaultTagValues: map[string]string{}}},
+		{map[string]string{"Env": "unknown", "owner": "Jack Skeleton"}, map[string]string{"owner": "Jack Skeleton"}, Mapper{DefaultTagValues: map[string]string{"Team": "unknown", "Env": "unknown"}}},
+		{map[string]string{"Env": "prod", "owner": "Jack Skeleton"}, map[string]string{"Env": "prod", "owner": "Jack Skeleton"}, Mapper{DefaultTagValues: map[string]string{"Team": "unknown", "Env": "unknown"}}},
+	}
+	for _, d := range testData {
+		d.config.StripDefaults(&d.input)
+		if !reflect.DeepEqual(d.expected, d.input) {
+			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expected, d.input)
+		}
+	}
+}
+
+func TestGetMissingDefaults(t *testing.T) {
+	testData := []struct {
+		input, expected map[string]string
+		config          Mapper
+	}{
+		{map[string]string{}, map[string]string{}, Mapper{}},
+		{map[string]string{"Env": "prod", "owner": "Jack Skeleton"}, map[string]string{}, Mapper{DefaultTagValues: map[string]string{}}},
+		{map[string]string{"Env": "prod", "owner": "Jack Skeleton"}, map[string]string{"Team": "unknown"}, Mapper{DefaultTagValues: map[string]string{"Team": "unknown", "Env": "unknown"}}},
+		{map[string]string{"Env": "unknown", "owner": "Jack Skeleton"}, map[string]string{"Team": "unknown"}, Mapper{DefaultTagValues: map[string]string{"Team": "unknown", "Env": "unknown"}}},
+	}
+	for _, d := range testData {
+		res := d.config.GetMissingDefaults(&d.input)
+		if !reflect.DeepEqual(d.expected, *res) {
+			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expected, *res)
+		}
+	}
+}

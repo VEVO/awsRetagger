@@ -69,10 +69,10 @@ exact, but its value is a case-insensitive regular expression.
 
 In the example bellow we use several values of the `team`, `service` and `env`
 tags. The first math for a given destination tag will win. For example, if your
-resource has a `Name` tag set to `myJenkins-Stg-Prd`, you will end up with a
-`team` tag set to `infrastructure`, a `service` tag set to `ci` and an `env` tag
-set to `stg` (not that as the prd evaluation is done after, the env tag takes
-the 1st match).
+resource has a `Name` tag set to `myJenkins-Stg-Prd`, you will end up with:
+* a `team` tag set to `infrastructure`
+* a `service` tag set to `ci`
+* an `env` tag set to `stg` (not that as the prd evaluation is done after, the env tag takes the 1st match)
 
 ```json
   "tags": [
@@ -91,6 +91,26 @@ the 1st match).
 ```
 
 ### The `keys` mapping
+
+The `keys` mapping allow you to map the value of one of the key elements of
+your resource and apply tags based on it.
+
+The value of the key element is, once again, a case-insensitive regular
+expression.
+
+The key elements of a resource are the following attribute (first come in the given order of a service wins):
+* for a CloudFront Distribution: `Id`, `DomainName`, Origins' `DomainName`, `Aliases`, `Comment`
+* for a CloudWatch LogGroup: `LogGroupName`
+* for an EC2 Instance: SSH `KeyName`
+* for an ElasticSearch Domain: `DomainId`, `DomainName`
+* for a RDS Instance: `DBClusterIdentifier`, `DBInstanceIdentifier`, `DBName`, `MasterUsername`
+* for a RDS Cluster: `DBClusterIdentifier`, `DatabaseName`, `MasterUsername`
+
+With the following configuration, an instance with a SSH KeyName set to
+`apple-tv-analytics-prod`, you'll end up with:
+* a `team` tag set to `data` (not `tv` as evaluated later)
+* an `env` tag set to `prd`
+* a `service` tag set to `appletv`
 
 ```json
   "keys": [

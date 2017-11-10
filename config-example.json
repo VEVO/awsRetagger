@@ -1,0 +1,84 @@
+{
+  "copy_tags": [
+    {"sources": ["division"], "destination": "team"},
+    {"sources": ["env", "environment", "environmetnt", "account", "environment.*"], "destination": "env"},
+    {"sources": ["servi.*ce", "application", "applicaiton", "app", "project", "micro.service"], "destination": "service"}
+  ],
+  "tags": [
+    {"source": {"name": "Project", "value": "API"}, "destination":[
+      {"name": "team", "value": "api"}
+    ]},
+    {"source": {"name": "Name", "value": "img.*cache"}, "destination":[
+      {"name": "team", "value": "content-services"},
+      {"name": "service", "value": "caching-service"}
+    ]},
+    {"source": {"name": "Name", "value": ".*jenkins.*"}, "destination":[
+      {"name": "team", "value": "infrastructure"},
+      {"name": "env", "value": "prd"},
+      {"name": "service", "value": "ci"}
+    ]},
+    {"source": {"name": "Name", "value": ".*-k8s-.*"}, "destination":[{"name": "service", "value": "kubernetes"}]},
+    {"source": {"name": "Name", "value": ".*web.*"}, "destination":[{"name": "team", "value": "web"},{"name": "service", "value": "web"}]},
+    {"source": {"name": "Name", "value": ".*staging.*"}, "destination":[{"name": "env", "value": "stg"}]},
+    {"source": {"name": "Name", "value": ".*stg.*"}, "destination":[{"name": "env", "value": "stg"}]},
+    {"source": {"name": "Name", "value": ".*prod.*"}, "destination":[{"name": "env", "value": "prd"}]},
+    {"source": {"name": "Name", "value": ".*prd.*"}, "destination":[{"name": "env", "value": "prd"}]}
+  ],
+  "keys": [
+    {"pattern": "joseph-.*", "destination":[
+      {"name": "team", "value": "infrastructure"},
+      {"name": "env", "value": "dev"},
+      {"name": "service", "value": "personal-sandbox"}
+    ]},
+    {"pattern": ".*user.*services.*", "destination":[{"name": "team", "value": "user-services"}]},
+    {"pattern": ".*data.*", "destination":[{"name": "team", "value": "data"}]},
+    {"pattern": ".*analytics.*", "destination":[{"name": "team", "value": "data"}]},
+    {"pattern": ".*staging.*", "destination":[{"name": "env", "value": "stg"}]},
+    {"pattern": ".*stg.*", "destination":[{"name": "env", "value": "stg"}]},
+    {"pattern": ".*prd.*", "destination":[{"name": "env", "value": "prd"}]},
+    {"pattern": ".*prod.*", "destination":[{"name": "env", "value": "prd"}]},
+    {"pattern": ".*web.*", "destination":[{"name": "team", "value": "web"},{"name": "service", "value": "web"}]},
+    {"pattern": ".*sonarqube.*", "destination":[{"name": "team", "value": "user-services"},{"name": "service", "value": "sonarqube"}]},
+    {"pattern": ".*tv.*", "destination":[{"name": "team", "value": "tv"}]},
+    {"pattern": ".*apple.*tv.*", "destination":[{"name": "service", "value": "appletv"}]},
+    {"pattern": ".*test.*", "destination":[{"name": "service", "value": "personal-sandbox"}]},
+    {"pattern": "cs-.*", "destination":[{"name": "team", "value": "content-services"}]},
+    {"pattern": ".*\/cs-.*", "destination":[{"name": "team", "value": "content-services"}]}
+  ],
+  "sanity": [
+    {
+      "tag_name": "env", "remap": {
+        "prd": ["prod.*", "global"],
+        "stg": ["stag.*"],
+        "dev": ["dev.*"]
+      }
+    },
+    {
+      "tag_name": "team", "remap": {
+        "content-services": ["cs", "cont.nt.serv.*", "content", "cms", "cont.nt.acq.*"],
+        "infrastructure": ["infra.*", "systems.*", "syseng.*"],
+        "web": [".*tv"],
+        "api": [],
+        "android":[],
+        "user-services": ["user.ser.*"],
+        "data": ["data.*", "Analytica"]
+      }
+    },
+    {
+      "tag_name": "service", "remap": {
+        "encoding": [ "enconding" ],
+        "vod": [".*vod-.*"],
+        "personal-sandbox": ["jump", ".*jumpbox.*", ".*test.*"],
+        "kubernetes": [".*-k8s-.*"],
+        "elk": [],
+        "jenkins": [],
+        "sonarqube": []
+      }
+    }
+  ],
+  "defaults": {
+    "env": "unknown",
+    "team": "unknown",
+    "service": "unknown"
+  }
+}

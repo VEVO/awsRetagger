@@ -1,8 +1,7 @@
-* Add config example
 * Update README
-* Add TODO
 * Add tests
 * use logrus: https://github.com/sirupsen/logrus
+* Centralized aws session creation
 * ec2.go add support for retagging:
   * ELB
   * ELB v2

@@ -63,14 +63,24 @@ tag will get the content of the `environment` tag.
 
 ### The `tags` mapping
 
+The `tags` mapping allow you to guess one or more `destination` tag(s) based on
+the content of a `source` tag. The name of the source tag is case-sensitive and must be
+exact, but its value is a case-insensitive regular expression.
+
+In the example bellow we use several values of the `team`, `service` and `env`
+tags. The first math for a given destination tag will win. For example, if your
+resource has a `Name` tag set to `myJenkins-Stg-Prd`, you will end up with a
+`team` tag set to `infrastructure`, a `service` tag set to `ci` and an `env` tag
+set to `stg` (not that as the prd evaluation is done after, the env tag takes
+the 1st match).
+
 ```json
   "tags": [
-    {"source": {"name": "Project", "value": "API"}, "destination":[
+    {"source": {"name": "Project", "value": "api"}, "destination":[
       {"name": "team", "value": "api"}
     ]},
     {"source": {"name": "Name", "value": ".*jenkins.*"}, "destination":[
       {"name": "team", "value": "infrastructure"},
-      {"name": "env", "value": "prd"},
       {"name": "service", "value": "ci"}
     ]},
     {"source": {"name": "Name", "value": ".*staging.*"}, "destination":[{"name": "env", "value": "stg"}]},

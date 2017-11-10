@@ -5,14 +5,15 @@
 
 ## Table of Contents
 
- * [What's that?](#whats-that)
- * [How does it work?](#how-does-it-work)
+  * [What's that?](#whats-that)
+  * [How does it work?](#how-does-it-work)
     * [The copy_tag mapping](#the-copy_tag-mapping)
     * [The tags mapping](#the-tags-mapping)
     * [The keys mapping](#the-keys-mapping)
     * [The sanity mapping](#the-sanity-mapping)
     * [The defaults mapping](#the-defaults-mapping)
- * [Using the tool](#using-the-tool)
+  * [Using the tool](#using-the-tool)
+  * [Supported resources](#supported-resources)
 
 ## What's that?
 
@@ -98,13 +99,13 @@ your resource and apply tags based on it.
 The value of the key element is, once again, a case-insensitive regular
 expression.
 
-The key elements of a resource are the following attribute (first come in the given order of a service wins):
-* for a CloudFront Distribution: `Id`, `DomainName`, Origins' `DomainName`, `Aliases`, `Comment`
-* for a CloudWatch LogGroup: `LogGroupName`
-* for an EC2 Instance: SSH `KeyName`
-* for an ElasticSearch Domain: `DomainId`, `DomainName`
-* for a RDS Instance: `DBClusterIdentifier`, `DBInstanceIdentifier`, `DBName`, `MasterUsername`
-* for a RDS Cluster: `DBClusterIdentifier`, `DatabaseName`, `MasterUsername`
+The key elements of a resource are the following attribute (first come in the given order of a service wins) for:
+* a CloudFront Distribution: `Id`, `DomainName`, Origins' `DomainName`, `Aliases`, `Comment`
+* a CloudWatch LogGroup: `LogGroupName`
+* an EC2 Instance: SSH `KeyName`
+* an ElasticSearch Domain: `DomainId`, `DomainName`
+* a RDS Instance: `DBClusterIdentifier`, `DBInstanceIdentifier`, `DBName`, `MasterUsername`
+* a RDS Cluster: `DBClusterIdentifier`, `DatabaseName`, `MasterUsername`
 
 With the following configuration, an instance with a SSH KeyName set to
 `apple-tv-analytics-prod`, you'll end up with:
@@ -130,6 +131,18 @@ With the following configuration, an instance with a SSH KeyName set to
 ```
 
 ### The `sanity` mapping
+
+The `sanity` mapping allows you to make sure the values of a tag match a given
+`remap` list. To those value you can give a list of case-insensitive regular
+expressions. If the tag value matches one of these regular expressions, it will
+be changed to the corresponding key.
+
+In the bellow example, if your tag `env` is set to `developpement`, it will be
+changed to `dev`. If the `team` tag was by mistake set to `user_servivices`, it
+will be changed to `user-services`.
+
+:white_check_mark: **Tip:** if 2 teams get merge, this is how you do it. For example here, the
+`data` team and the `analytics` team gets merge into the `data` team.
 
 ```json
   "sanity": [
@@ -158,6 +171,23 @@ With the following configuration, an instance with a SSH KeyName set to
 
 ### The `defaults` mapping
 
+The `defaults` mapping ensures that the given tags will always be tagged to at
+least a value. If after passing all the previous mappings, the given tags are
+not set, it will be set to its corresponding value.
+
+:exclamation: **Important:** At the begining of the retagging process, the
+tags with the default value are stripped from the list of tags. That means that
+if you set to a value you want to be everywhere, the tags will be applied
+everytime. If you want to have a default valuenot overwritten, use the sanity
+mapping (example, add "unknown" to the `prd` key when running it in the
+production account).
+
+With the following configuration, the `env`, `team` and `service` that are not
+set on a resource at the end of the process will be set to `unknown`.
+
+The current AWS SDK doesn't allow you to filter by unset tags, so that helps you
+to do some filtering more easily.
+
 ```json
   "defaults": {
     "env":     "unknown",
@@ -167,6 +197,10 @@ With the following configuration, an instance with a SSH KeyName set to
 ```
 
 ## Using the tool
+
+To build the tool, run `make build`. Once build, you can use the `-h` option to
+see the list of all options. All the options can be set using the corresponding
+environment variable.
 
 ```
 $ ./awsRetagger -h
@@ -184,3 +218,14 @@ Usage of ./awsRetagger:
   -rds-instances
         Enables the re-tagging of the RDS instances. Environment variable: RDS_INSTANCES
 ```
+
+## Supported resources
+
+Currently the awsRetagger can retag the following resources (but maybe more, so
+you might check using the `-h` option of the command-line):
+* CloudFront Distributions
+* CloudWatch LogGroups
+* EC2 Instances
+* ElasticSearch Domains
+* RDS Instances
+* RDS Clusters

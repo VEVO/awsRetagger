@@ -202,6 +202,13 @@ To build the tool, run `make build`. Once build, you can use the `-h` option to
 see the list of all options. All the options can be set using the corresponding
 environment variable.
 
+**Note:** to connect to AWS, make sure your credentials file is properly setup.
+If you want to set a specific region that is not in your credentials, use the
+`AWS_REGION` environment variable. If you want to use a profile different from
+the default one, set the `AWS_PROFILE` environment variable. And as usual you
+can use the other standard `AWS_*` environment variables as we force-enable the
+shared configuration.
+
 ```
 $ ./awsRetagger -h
 Usage of ./awsRetagger:

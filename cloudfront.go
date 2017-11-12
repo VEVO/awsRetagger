@@ -14,10 +14,7 @@ type CloudFrontProcessor struct {
 
 // NewCloudFrontProcessor creates a new instance of CloudFrontProcessor containing an already
 // initialized cloudfront client
-func NewCloudFrontProcessor() *CloudFrontProcessor {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+func NewCloudFrontProcessor(sess *session.Session) *CloudFrontProcessor {
 	return &CloudFrontProcessor{svc: cloudfront.New(sess)}
 }
 

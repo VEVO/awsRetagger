@@ -14,10 +14,7 @@ type ElkProcessor struct {
 
 // NewElkProcessor creates a new instance of ElkProcessor containing an already
 // initialized elasticsearchservice client
-func NewElkProcessor() *ElkProcessor {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+func NewElkProcessor(sess *session.Session) *ElkProcessor {
 	return &ElkProcessor{svc: elasticsearchservice.New(sess)}
 }
 

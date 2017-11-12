@@ -14,10 +14,7 @@ type CwProcessor struct {
 
 // NewCwProcessor creates a new instance of CwProcessor containing an already
 // initialized cloudwatchlogs client
-func NewCwProcessor() *CwProcessor {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+func NewCwProcessor(sess *session.Session) *CwProcessor {
 	return &CwProcessor{svc: cloudwatchlogs.New(sess)}
 }
 

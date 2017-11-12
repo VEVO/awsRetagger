@@ -14,10 +14,7 @@ type Ec2Processor struct {
 
 // NewEc2Processor creates a new instance of Ec2Processor containing an already
 // initialized ec2 client
-func NewEc2Processor() *Ec2Processor {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+func NewEc2Processor(sess *session.Session) *Ec2Processor {
 	return &Ec2Processor{svc: ec2.New(sess)}
 }
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/gobike/envflag"
 	"log"
 	"os"
@@ -30,13 +31,17 @@ func main() {
 		log.Fatalf("Unable to load config file: %s\n", err)
 	}
 
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
 	if processEc2Instances {
-		e := NewEc2Processor()
+		e := NewEc2Processor(sess)
 		e.RetagInstances(&m)
 	}
 
 	if processRdsInstances || processRdsClusters {
-		r := NewRdsProcessor()
+		r := NewRdsProcessor(sess)
 		if processRdsInstances {
 			r.RetagInstances(&m)
 		}
@@ -46,17 +51,17 @@ func main() {
 	}
 
 	if processCloudwatchLogGroups {
-		c := NewCwProcessor()
+		c := NewCwProcessor(sess)
 		c.RetagLogGroups(&m)
 	}
 
 	if processElasticSearch {
-		elk := NewElkProcessor()
+		elk := NewElkProcessor(sess)
 		elk.RetagDomains(&m)
 	}
 
 	if processCloudFrontDist {
-		cf := NewCloudFrontProcessor()
+		cf := NewCloudFrontProcessor(sess)
 		cf.RetagDistributions(&m)
 	}
 }

@@ -14,10 +14,7 @@ type RdsProcessor struct {
 
 // NewRdsProcessor creates a new instance of RdsProcessor containing an already
 // initialized rds client
-func NewRdsProcessor() *RdsProcessor {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+func NewRdsProcessor(sess *session.Session) *RdsProcessor {
 	return &RdsProcessor{svc: rds.New(sess)}
 }
 

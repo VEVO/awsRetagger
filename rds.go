@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/sirupsen/logrus"
 )
 
 // RdsProcessor holds the rds-related actions
@@ -51,13 +52,13 @@ func (p *RdsProcessor) GetTags(resourceID *string) ([]*rds.Tag, error) {
 func (p *RdsProcessor) RetagInstances(m *Mapper) {
 	result, err := p.svc.DescribeDBInstances(&rds.DescribeDBInstancesInput{})
 	if err != nil {
-		log.Fatalf("[ERROR] DescribeDBInstances returned: %s\n", err.Error())
+		log.WithFields(logrus.Fields{"error": err}).Fatalf("DescribeDBInstances failed")
 	}
 
 	for _, instance := range result.DBInstances {
 		t, err := p.GetTags(instance.DBInstanceArn)
 		if err != nil {
-			log.Fatalf("[ERROR] Getting DB instance %s tags returned: %s\n", *instance.DBInstanceArn, err.Error())
+			log.WithFields(logrus.Fields{"error": err, "resource": *instance.DBInstanceArn}).Fatalf("Failed to get DB instance tags")
 		}
 
 		tags := p.TagsToMap(t)
@@ -82,13 +83,13 @@ func (p *RdsProcessor) RetagInstances(m *Mapper) {
 func (p *RdsProcessor) RetagClusters(m *Mapper) {
 	result, err := p.svc.DescribeDBClusters(&rds.DescribeDBClustersInput{})
 	if err != nil {
-		log.Fatalf("[ERROR] DescribeDBClusters returned: %s\n", err.Error())
+		log.WithFields(logrus.Fields{"error": err}).Fatalf("DescribeDBClusters failed")
 	}
 
 	for _, cluster := range result.DBClusters {
 		t, err := p.GetTags(cluster.DBClusterArn)
 		if err != nil {
-			log.Fatalf("[ERROR] Getting DB cluster %s tags returned: %s\n", *cluster.DBClusterArn, err.Error())
+			log.WithFields(logrus.Fields{"error": err, "resource": *cluster.DBClusterArn}).Fatalf("Failed to get DB cluster tags")
 		}
 
 		tags := p.TagsToMap(t)

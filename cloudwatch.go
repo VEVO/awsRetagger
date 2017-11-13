@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/sirupsen/logrus"
 )
 
 // CwProcessor holds the cloudwatch-related actions
@@ -54,7 +55,7 @@ func (p *CwProcessor) RetagLogGroups(m *Mapper) {
 			for _, lg := range page.LogGroups {
 				t, err := p.GetTags(lg.LogGroupName)
 				if err != nil {
-					log.Fatalf("[ERROR] Getting Log group %s tags returned: %v\n", *lg.Arn, err)
+					log.WithFields(logrus.Fields{"error": err, "resource": *lg.Arn}).Fatal("Failed to get LogGroup tags")
 				}
 
 				tags := p.TagsToMap(t)
@@ -67,6 +68,6 @@ func (p *CwProcessor) RetagLogGroups(m *Mapper) {
 			return !lastPage
 		})
 	if err != nil {
-		log.Fatalf("[ERROR] DescribeLogGroups returned: %v\n", err)
+		log.WithFields(logrus.Fields{"error": err}).Fatal("DescribeLogGroups failed")
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
+	"github.com/sirupsen/logrus"
 )
 
 // ElkProcessor holds the elasticsearch-related actions
@@ -51,18 +52,18 @@ func (p *ElkProcessor) GetTags(resourceID *string) ([]*elasticsearchservice.Tag,
 func (p *ElkProcessor) RetagDomains(m *Mapper) {
 	result, err := p.svc.ListDomainNames(&elasticsearchservice.ListDomainNamesInput{})
 	if err != nil {
-		log.Fatalf("[ERROR] ListDomainNames returned: %s\n", err.Error())
+		log.WithFields(logrus.Fields{"error": err}).Fatal("ListDomainNames failed")
 	}
 
 	for _, domain := range result.DomainNames {
 		domInfo, err := p.svc.DescribeElasticsearchDomain(&elasticsearchservice.DescribeElasticsearchDomainInput{DomainName: domain.DomainName})
 		if err != nil {
-			log.Fatalf("[ERROR] Getting elasticsearch domain %s arn returned: %s\n", *domain.DomainName, err.Error())
+			log.WithFields(logrus.Fields{"error": err, "resource": *domain.DomainName}).Fatal("Failed to get Elasticsearch domain attributes")
 		}
 		dom := *(domInfo.DomainStatus)
 		t, err := p.GetTags(dom.ARN)
 		if err != nil {
-			log.Fatalf("[ERROR] Getting elasticsearch domain %s tags returned: %s\n", *domain.DomainName, err.Error())
+			log.WithFields(logrus.Fields{"error": err, "resource": *domain.DomainName}).Fatal("Failed to get Elasticsearch domain tags")
 		}
 
 		tags := p.TagsToMap(t)

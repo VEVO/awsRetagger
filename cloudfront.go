@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/sirupsen/logrus"
 )
 
 // CloudFrontProcessor holds the cloudfront-related actions
@@ -59,7 +60,7 @@ func (p *CloudFrontProcessor) RetagDistributions(m *Mapper) {
 				for _, dist := range (*page.DistributionList).Items {
 					t, err := p.GetTags(dist.ARN)
 					if err != nil {
-						log.Fatalf("[ERROR] Getting CloudFront distribution %s tags returned: %v\n", *dist.ARN, err)
+						log.WithFields(logrus.Fields{"error": err, "resource": *dist.ARN}).Fatal("Failed to get CloudFront distribution tags")
 					}
 
 					tags := p.TagsToMap(t)
@@ -89,6 +90,6 @@ func (p *CloudFrontProcessor) RetagDistributions(m *Mapper) {
 			return !lastPage
 		})
 	if err != nil {
-		log.Fatalf("[ERROR] ListDistributionsPages returned: %v\n", err)
+		log.WithFields(logrus.Fields{"error": err}).Fatal("ListDistributionsPages failed")
 	}
 }

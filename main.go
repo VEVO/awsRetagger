@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/Sirupsen/logrus"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/gobike/envflag"
+	"github.com/sirupsen/logrus"
 	"io"
 	"os"
 )
@@ -61,12 +61,12 @@ func main() {
 	cfg, err := os.Open(configFilePath)
 	defer cfg.Close()
 	if err != nil {
-		log.Fatalf("Unable to read config file: %s\n", err)
+		log.WithFields(logrus.Fields{"error": err}).Fatal("Unable to read config file")
 	}
 
 	m := Mapper{}
 	if err = m.LoadConfig(cfg); err != nil {
-		log.Fatalf("Unable to load config file: %s\n", err)
+		log.WithFields(logrus.Fields{"error": err}).Fatal("Unable to load config file")
 	}
 
 	sess := session.Must(session.NewSessionWithOptions(session.Options{

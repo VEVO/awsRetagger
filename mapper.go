@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/sirupsen/logrus"
 	"io"
 	"regexp"
 )
@@ -251,12 +252,12 @@ func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []strin
 	)
 	m.StripDefaults(tags)
 	if newTags, err = m.GetFromTags(tags); err != nil {
-		log.Printf("[ERROR] GetFromTags returned: %s\n", err.Error())
+		log.WithFields(logrus.Fields{"error": err}).Error("GetFromTags failed")
 	}
 
 	for _, item := range keys {
 		if mapFromKey, err = m.GetFromKey(item, tags); err != nil {
-			log.Printf("[ERROR] GetFromKey returned: %s\n", err.Error())
+			log.WithFields(logrus.Fields{"error": err}).Error("GetFromKey failed")
 		}
 		m.MergeMaps(newTags, mapFromKey)
 	}
@@ -270,9 +271,9 @@ func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []strin
 		if err != nil {
 			switch err.(type) {
 			case *ErrSanityNoMapping:
-				log.Printf("[WARNING] %s on resource %s\n", err.Error(), *resourceID)
+				log.WithFields(logrus.Fields{"error": err, "resource": *resourceID}).Warn("Sanity check failed")
 			default:
-				log.Printf("[ERROR] ValidateTag returned: %s\n", err.Error())
+				log.WithFields(logrus.Fields{"error": err}).Error("ValidateTag failed")
 			}
 		}
 		if sanitizedTag != nil {
@@ -288,14 +289,14 @@ func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []strin
 		if err != nil {
 			switch err.(type) {
 			case *ErrSanityNoMapping:
-				log.Printf("[WARNING] %s on resource %s\n", err.Error(), *resourceID)
+				log.WithFields(logrus.Fields{"error": err, "resource": *resourceID}).Warn("Sanity check failed")
 			default:
-				log.Printf("[ERROR] ValidateTag returned: %s\n", err.Error())
+				log.WithFields(logrus.Fields{"error": err}).Error("ValidateTag failed")
 			}
 		}
-		// log.Printf("[DEBUG] Setting tag %s to %s for instance %s\n", (*finalTag).Name, (*finalTag).Value, *resourceID)
+		log.WithFields(logrus.Fields{"resource": *resourceID, "tag_name": (*finalTag).Name, "tag_value": (*finalTag).Value}).Debug("Setting tag on resource")
 		if err = setTag(resourceID, finalTag); err != nil {
-			log.Printf("[ERROR] While setting tag on resource %s: %s\n", *resourceID, err.Error())
+			log.WithFields(logrus.Fields{"error": err, "resource": *resourceID}).Error("Failed to set tag on resource")
 		}
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/sirupsen/logrus"
 )
 
 // Ec2Processor holds the ec2-related actions
@@ -43,7 +44,7 @@ func (e *Ec2Processor) RetagInstances(m *Mapper) {
 	}
 	result, err := e.svc.DescribeInstances(&ec2.DescribeInstancesInput{Filters: filters})
 	if err != nil {
-		log.Fatalf("[ERROR] DescribeInstances returned: %v\n", err)
+		log.WithFields(logrus.Fields{"error": err}).Fatal("DescribeInstances failed")
 	}
 
 	for _, reservation := range result.Reservations {

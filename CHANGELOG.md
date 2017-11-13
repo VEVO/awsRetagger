@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Changed
-- Use logrus as logging library
+- Use logrus as logging library and use the fields capabilities of logrus
+  instead of string concatenation
+
+### Added
+- Add the capability to log in text or json format based on user input
+- Add the capability for the user to use different log levels
 
 ## [0.0.1] - 2017-11-12
 ### Added

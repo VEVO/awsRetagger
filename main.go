@@ -9,7 +9,11 @@ import (
 )
 
 func main() {
-	var processEc2Instances, processRdsInstances, processRdsClusters, processCloudwatchLogGroups, processElasticSearch, processCloudFrontDist bool
+	var (
+		configFilePath                                                                                                                        string
+		processEc2Instances, processRdsInstances, processRdsClusters, processCloudwatchLogGroups, processElasticSearch, processCloudFrontDist bool
+	)
+	flag.StringVar(&configFilePath, "config", "config.json", "Path of the json configuration file. Environment variable: CONFIG")
 	flag.BoolVar(&processEc2Instances, "ec2-instances", false, "Enables the re-tagging of the EC2 instances. Environment variable: EC2_INSTANCES")
 	flag.BoolVar(&processRdsInstances, "rds-instances", false, "Enables the re-tagging of the RDS instances. Environment variable: RDS_INSTANCES")
 	flag.BoolVar(&processRdsClusters, "rds-clusters", false, "Enables the re-tagging of the RDS clusters. Environment variable: RDS_CLUSTERS")
@@ -19,7 +23,6 @@ func main() {
 	envflag.Parse()
 
 	// Load config
-	configFilePath := "config.json"
 	cfg, err := os.Open(configFilePath)
 	defer cfg.Close()
 	if err != nil {

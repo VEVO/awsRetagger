@@ -216,6 +216,8 @@ Usage of ./awsRetagger:
         Enables the re-tagging of the CloudFront distributions. Environment variable: CLOUDFRONT_DISTRIBUTIONS
   -cloudwatch-groups
         Enables the re-tagging of the CloudWatch log groups. Environment variable: CLOUDWATCH_GROUPS
+    -config string
+        Path of the json configuration file. Environment variable: CONFIG (default "config.json")
   -ec2-instances
         Enables the re-tagging of the EC2 instances. Environment variable: EC2_INSTANCES
   -elasticsearch

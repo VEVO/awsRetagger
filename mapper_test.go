@@ -283,3 +283,22 @@ func TestGetMissingDefaults(t *testing.T) {
 		}
 	}
 }
+
+func TestMergeMaps(t *testing.T) {
+	testData := []struct {
+		mainMap, additionalMap, expected map[string]string
+	}{
+		{map[string]string{}, map[string]string{}, map[string]string{}},
+		{map[string]string{"foo": "bar"}, map[string]string{}, map[string]string{"foo": "bar"}},
+		{map[string]string{}, map[string]string{"foo": "bar"}, map[string]string{"foo": "bar"}},
+		{map[string]string{"foo": "bar"}, map[string]string{"foo": "already there!"}, map[string]string{"foo": "bar"}},
+		{map[string]string{"foo": "bar"}, map[string]string{"foo": "already there!", "hello": "world!"}, map[string]string{"foo": "bar", "hello": "world!"}},
+	}
+	for _, d := range testData {
+		config := Mapper{}
+		config.MergeMaps(&d.mainMap, &d.additionalMap)
+		if !reflect.DeepEqual(d.expected, d.mainMap) {
+			t.Errorf("Expecting: %v\nGot: %v\n", d.expected, d.mainMap)
+		}
+	}
+}

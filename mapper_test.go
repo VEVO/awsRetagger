@@ -2,6 +2,7 @@ package main
 
 import (
 	"reflect"
+	"regexp/syntax"
 	"strings"
 	"testing"
 )
@@ -40,10 +41,10 @@ func TestLoadConfig(t *testing.T) {
 	for _, d := range testData {
 		m := Mapper{}
 		if err := m.LoadConfig(strings.NewReader(d.input)); err != nil {
-			t.Fatalf("[ERROR] LoadConfig returned: %s\n", err)
+			t.Fatalf("LoadConfig returned: %s\n", err)
 		}
 		if !reflect.DeepEqual(d.expected, m) {
-			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expected, m)
+			t.Errorf("Expecting: %v\nGot: %v\n", d.expected, m)
 		}
 	}
 }
@@ -85,10 +86,10 @@ func TestGetFromTags(t *testing.T) {
 	for _, d := range testData {
 		res, err := d.config.GetFromTags(&d.input)
 		if err != nil {
-			t.Fatalf("[ERROR] GetFromTags returned: %s\n", err)
+			t.Fatalf("GetFromTags returned: %s\n", err)
 		}
 		if !reflect.DeepEqual(d.expected, *res) {
-			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expected, *res)
+			t.Errorf("Expecting: %v\nGot: %v\n", d.expected, *res)
 		}
 	}
 }
@@ -137,10 +138,10 @@ func TestGetFromKey(t *testing.T) {
 	for _, d := range testData {
 		res, err := d.config.GetFromKey(d.inputKey, &d.inputTags)
 		if err != nil {
-			t.Fatalf("[ERROR] GetFromKey returned: %s\n", err)
+			t.Fatalf("GetFromKey returned: %s\n", err)
 		}
 		if !reflect.DeepEqual(d.expected, *res) {
-			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expected, *res)
+			t.Errorf("Expecting: %v\nGot: %v\n", d.expected, *res)
 		}
 	}
 
@@ -154,6 +155,11 @@ func TestValidateTag(t *testing.T) {
 		expectedError     error
 	}{
 		{"", "", Mapper{}, TagItem{Name: "", Value: ""}, NewErrSanityConfig("No sanity configuration found", "")},
+		{"wrong_syntax", "in the regexp pattern", Mapper{
+			Sanity: []*TagSanity{
+				{TagName: "wrong_syntax", Transform: map[string][]string{"foo": {"ba)r"}}},
+			},
+		}, TagItem{Name: "wrong_syntax", Value: "in the regexp pattern"}, &syntax.Error{Code: syntax.ErrUnexpectedParen, Expr: "(?i)^ba)r$"}},
 		{"foo", "bar", Mapper{
 			Sanity: []*TagSanity{
 				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},
@@ -194,10 +200,10 @@ func TestValidateTag(t *testing.T) {
 	for _, d := range testData {
 		res, err := d.config.ValidateTag(d.tagName, d.tagValue)
 		if !reflect.DeepEqual(err, d.expectedError) {
-			t.Errorf("[ERROR] GetFromKey returned: %s. Expecting: %s\n", err, d.expectedError)
+			t.Errorf("GetFromKey returned: %s. Expecting: %s\n", err, d.expectedError)
 		}
 		if !reflect.DeepEqual(d.expectedTag, *res) {
-			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expectedTag, *res)
+			t.Errorf("Expecting: %v\nGot: %v\n", d.expectedTag, *res)
 		}
 	}
 }
@@ -215,7 +221,7 @@ func TestStripDefaults(t *testing.T) {
 	for _, d := range testData {
 		d.config.StripDefaults(&d.input)
 		if !reflect.DeepEqual(d.expected, d.input) {
-			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expected, d.input)
+			t.Errorf("Expecting: %v\nGot: %v\n", d.expected, d.input)
 		}
 	}
 }
@@ -233,7 +239,7 @@ func TestGetMissingDefaults(t *testing.T) {
 	for _, d := range testData {
 		res := d.config.GetMissingDefaults(&d.input)
 		if !reflect.DeepEqual(d.expected, *res) {
-			t.Errorf("[ERROR] Expecting: %v\nGot: %v\n", d.expected, *res)
+			t.Errorf("Expecting: %v\nGot: %v\n", d.expected, *res)
 		}
 	}
 }

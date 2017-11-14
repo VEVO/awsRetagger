@@ -219,7 +219,7 @@ func (m *Mapper) ValidateTag(tagName, tagValue string) (*TagItem, error) {
 			}
 			for _, val := range alt {
 				if match, err = regexp.MatchString("(?i)^"+val+"$", tagValue); err != nil {
-					return nil, err
+					return &result, err
 				}
 				if match {
 					result.Value = ref

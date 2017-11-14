@@ -33,6 +33,12 @@ go-lint: go-fmt
 		go vet -v ./...; \
 	fi
 
+go-cov:
+	@go get github.com/axw/gocov/gocov \
+	&& go install github.com/axw/gocov/gocov
+	gocov test | gocov report
+	# gocov test >/tmp/gocovtest.json ; gocov annotate /tmp/gocovtest.json MyFunc
+
 test:
 	@if [ -f "glide.yaml" ] ; then \
 		go test $$(glide novendor); \

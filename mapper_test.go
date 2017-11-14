@@ -1,6 +1,9 @@
 package main
 
 import (
+	"errors"
+	"github.com/sirupsen/logrus"
+	logrus_test "github.com/sirupsen/logrus/hooks/test"
 	"reflect"
 	"regexp/syntax"
 	"strings"
@@ -299,6 +302,107 @@ func TestMergeMaps(t *testing.T) {
 		config.MergeMaps(&d.mainMap, &d.additionalMap)
 		if !reflect.DeepEqual(d.expected, d.mainMap) {
 			t.Errorf("Expecting: %v\nGot: %v\n", d.expected, d.mainMap)
+		}
+	}
+}
+
+// global map only used for the TestRetag function literal
+var testRetagUpdateTags = map[string]string{}
+
+func setTagTestFctSuccess(res *string, tag *TagItem) error {
+	testRetagUpdateTags[tag.Name] = tag.Value
+	return nil
+}
+func setTagTestFctFailure(res *string, tag *TagItem) error {
+	return errors.New("Badaboom")
+}
+
+func TestRetag(t *testing.T) {
+	configWorking := Mapper{
+		KeyMap: []*KeyMapper{
+			{KeyPattern: ".*production.*", Destination: []*TagItem{{Name: "Env", Value: "prd"}}},
+			{KeyPattern: ".*staging.*", Destination: []*TagItem{{Name: "Env", Value: "stg"}}},
+			{KeyPattern: ".*apache.*", Destination: []*TagItem{{Name: "Team", Value: "web"}, {Name: "Component", Value: "apache"}}},
+		},
+		TagMap: []*TagMapper{
+			{Source: &TagItem{Name: "Name", Value: ".*prod.*"}, Destination: []*TagItem{{Name: "Env", Value: "prd"}}},
+			{Source: &TagItem{Name: "Name", Value: ".*dev.*"}, Destination: []*TagItem{{Name: "Env", Value: "dev"}}},
+			{Source: &TagItem{Name: "Name", Value: ".*dev.*data.*"}, Destination: []*TagItem{{Name: "Team", Value: "data"}, {Name: "Env", Value: "dev"}}},
+		},
+		CopyTag: []*TagCopy{{Source: []string{"ENVIRONMENT", "ENVIRONMETNT", "Account"}, Destination: "Env"}},
+		Sanity: []*TagSanity{
+			{TagName: "Env", Transform: map[string][]string{"prd": {"prod", "production", "global"}, "stg": {"staging"}, "dev": {"development"}}},
+			{TagName: "Team", Transform: map[string][]string{"web": {}}},
+		},
+		DefaultTagValues: map[string]string{"Env": "unknown", "Team": "unknown", "Service": "unknown"},
+	}
+
+	testData := []struct {
+		resourceID    string
+		tags          map[string]string
+		keys          []string
+		setTags       putTagFn
+		logEntries    int
+		expected      map[string]string
+		config        Mapper
+		expectedError error
+	}{
+		// empty source tag and keys
+		{"my resource", map[string]string{}, []string{}, setTagTestFctSuccess, 3, map[string]string{"Env": "unknown", "Team": "unknown", "Service": "unknown"}, configWorking, nil},
+		// non-matching tag existence, emtpy key
+		{"my resource", map[string]string{"foo": "bar"}, []string{}, setTagTestFctSuccess, 4, map[string]string{"Env": "unknown", "Team": "unknown", "Service": "unknown"}, configWorking, nil},
+		// 1 matching tag existence with transformation, empty key
+		{"my resource", map[string]string{"Env": "prod", "Service": "whatever"}, []string{}, setTagTestFctSuccess, 2, map[string]string{"Env": "prd", "Team": "unknown"}, configWorking, nil},
+		// 1 matching tag existence without transformation, empty key
+		{"my resource", map[string]string{"Env": "prd", "Service": "whatever"}, []string{}, setTagTestFctSuccess, 2, map[string]string{"Team": "unknown"}, configWorking, nil},
+		// 1 matching tag existence, matching key
+		{"my resource", map[string]string{"Env": "prd", "Service": "whatever"}, []string{"web-apache"}, setTagTestFctSuccess, 2, map[string]string{"Team": "web", "Component": "apache"}, configWorking, nil},
+		// 1 matching tag existence with transformation, overlapping key
+		{"my resource", map[string]string{"Env": "prod", "Service": "whatever"}, []string{"non-staging-stuff"}, setTagTestFctSuccess, 2, map[string]string{"Env": "prd", "Team": "unknown"}, configWorking, nil},
+		// 1 matching copy tag with transformation, overlapping key
+		{"my resource", map[string]string{"Account": "prod", "Service": "whatever"}, []string{"non-staging-stuff"}, setTagTestFctSuccess, 3, map[string]string{"Env": "prd", "Team": "unknown"}, configWorking, nil},
+		// 1 matching copy tag, partially overlapping tag map, partially overlapping key
+		{"my resource", map[string]string{"Account": "prd", "Name": "dev-data-app", "Service": "Alice in chains", "noiseTag": "blah"}, []string{"non-staging-apache"}, setTagTestFctSuccess, 7, map[string]string{"Env": "prd", "Team": "data", "Component": "apache"}, configWorking, nil},
+		// setTag errors out
+		{"my resource", map[string]string{"Env": "prd", "Service": "whatever"}, []string{}, setTagTestFctFailure, 3, map[string]string{}, configWorking, errors.New("Failed to set tag on resource")},
+		// bad config errors out
+		{"my resource", map[string]string{"Name": "prod", "Service": "whatever"}, []string{}, setTagTestFctSuccess, 3, map[string]string{}, Mapper{CopyTag: []*TagCopy{{Source: []string{"Accou)nt"}, Destination: "Env"}}}, errors.New("GetFromTags failed")},
+		{"my resource", map[string]string{"Service": "whatever"}, []string{"bla"}, setTagTestFctSuccess, 2, map[string]string{}, Mapper{KeyMap: []*KeyMapper{{KeyPattern: ".*a)b.*", Destination: []*TagItem{{Name: "Env", Value: "prd"}}}}}, errors.New("GetFromKey failed")},
+		{"my resource", map[string]string{"Env": "prd", "Service": "whatever"}, []string{}, setTagTestFctSuccess, 2, map[string]string{}, Mapper{Sanity: []*TagSanity{{TagName: "Service", Transform: map[string][]string{"web": {"a)b"}}}}}, errors.New("ValidateTag failed")},
+	}
+
+	logger, hook := logrus_test.NewNullLogger()
+	log = logrus.NewEntry(logger)
+
+	for _, d := range testData {
+		// Reset the counters
+		hook.Reset()
+		testRetagUpdateTags = map[string]string{}
+
+		d.config.Retag(&d.resourceID, &d.tags, d.keys, d.setTags)
+		if !reflect.DeepEqual(d.expected, testRetagUpdateTags) {
+			t.Errorf("Expecting: %v\nGot: %v\n", d.expected, testRetagUpdateTags)
+		}
+
+		// Check what has been logged
+		gotError := false
+		for _, entry := range hook.Entries {
+			if d.expectedError != nil && entry.Level == logrus.ErrorLevel {
+				gotError = true
+				if entry.Message != d.expectedError.Error() {
+					t.Errorf("Unexpected message logged: got %s expecting %s for test case: %v\n", d.expectedError.Error(), entry.Message, d)
+				}
+			} else {
+				if entry.Message != "Sanity check failed" && entry.Message != "No sanity configuration found" {
+					t.Errorf("Unexpected message logged: %s for test case: %v\n", entry.Message, d)
+				}
+			}
+		}
+		if d.expectedError != nil && !gotError {
+			t.Errorf("Did not get expected error: %s for test case: %v\n", d.expectedError.Error(), d)
+		}
+		if len(hook.Entries) != d.logEntries {
+			t.Errorf("Unexpected number of messages logged. Got %d, expecting %d\nFor test case: %v\n", len(hook.Entries), d.logEntries, d)
 		}
 	}
 }

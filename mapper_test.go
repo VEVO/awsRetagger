@@ -53,8 +53,9 @@ func TestGetFromTags(t *testing.T) {
 	testData := []struct {
 		input, expected map[string]string
 		config          Mapper
+		expectedError   error
 	}{
-		{map[string]string{}, map[string]string{}, Mapper{}},
+		{map[string]string{}, map[string]string{}, Mapper{}, nil},
 		{
 			map[string]string{},
 			map[string]string{},
@@ -64,7 +65,18 @@ func TestGetFromTags(t *testing.T) {
 					{Source: []string{"unit", "band", "TeAm"}, Destination: "team"},
 					{Source: []string{"application", "app", "project", "aplicaiton"}, Destination: "team"},
 				},
-			},
+			}, nil,
+		},
+		{
+			map[string]string{"ENVIRONMENT-BLA": "regex bla", "Account": "should not be evaluated", "team": "already present", "unit": "should not be evaluated", "aplIcaitOn": "case insensitive match", "Name": "foo-bar-stg"},
+			map[string]string{},
+			Mapper{
+				CopyTag: []*TagCopy{
+					{Source: []string{"EN)VIRONMENT.*", "ENVIRONMETNT", "Account"}, Destination: "env"},
+					{Source: []string{"unit", "band", "TeAm"}, Destination: "team"},
+					{Source: []string{"application", "app", "project", "aplicaiton"}, Destination: "team"},
+				},
+			}, &syntax.Error{Code: syntax.ErrUnexpectedParen, Expr: "(?i)^EN)VIRONMENT.*$"},
 		},
 		{
 			map[string]string{"ENVIRONMENT-BLA": "regex bla", "Account": "should not be evaluated", "team": "already present", "unit": "should not be evaluated", "aplIcaitOn": "case insensitive match", "Name": "foo-bar-stg"},
@@ -79,14 +91,29 @@ func TestGetFromTags(t *testing.T) {
 					{Source: &TagItem{Name: "Name", Value: ".*foo-.*stg.*"}, Destination: []*TagItem{{Name: "env", Value: "stg"}, {Name: "component", Value: "foo"}}},
 					{Source: &TagItem{Name: "Name", Value: ".*foo.*"}, Destination: []*TagItem{{Name: "artist", Value: "bar"}, {Name: "component", Value: "foo that should not show"}}},
 				},
-			},
+			}, nil,
+		},
+		{
+			map[string]string{"ENVIRONMENT-BLA": "regex bla", "Account": "should not be evaluated", "team": "already present", "unit": "should not be evaluated", "aplIcaitOn": "case insensitive match", "Name": "foo-bar-stg"},
+			map[string]string{"env": "regex bla", "service": "case insensitive match"},
+			Mapper{
+				CopyTag: []*TagCopy{
+					{Source: []string{"ENVIRONMENT.*", "ENVIRONMETNT", "Account"}, Destination: "env"},
+					{Source: []string{"unit", "band", "TeAm"}, Destination: "team"},
+					{Source: []string{"application", "app", "project", "aplicaiton"}, Destination: "service"},
+				},
+				TagMap: []*TagMapper{
+					{Source: &TagItem{Name: "Name", Value: ".*foo-.*s)tg.*"}, Destination: []*TagItem{{Name: "env", Value: "stg"}, {Name: "component", Value: "foo"}}},
+					{Source: &TagItem{Name: "Name", Value: ".*foo.*"}, Destination: []*TagItem{{Name: "artist", Value: "bar"}, {Name: "component", Value: "foo that should not show"}}},
+				},
+			}, &syntax.Error{Code: syntax.ErrUnexpectedParen, Expr: "(?i)^.*foo-.*s)tg.*$"},
 		},
 	}
 
 	for _, d := range testData {
 		res, err := d.config.GetFromTags(&d.input)
-		if err != nil {
-			t.Fatalf("GetFromTags returned: %s\n", err)
+		if !reflect.DeepEqual(err, d.expectedError) {
+			t.Fatalf("GetFromTags returned: %v, expecting: %v\n", err, d.expectedError)
 		}
 		if !reflect.DeepEqual(d.expected, *res) {
 			t.Errorf("Expecting: %v\nGot: %v\n", d.expected, *res)
@@ -99,15 +126,16 @@ func TestGetFromKey(t *testing.T) {
 		inputKey            string
 		inputTags, expected map[string]string
 		config              Mapper
+		expectedError       error
 	}{
-		{"", map[string]string{}, map[string]string{}, Mapper{}},
+		{"", map[string]string{}, map[string]string{}, Mapper{}, nil},
 		{
 			"nothing matches", map[string]string{}, map[string]string{},
 			Mapper{
 				KeyMap: []*KeyMapper{
 					{KeyPattern: ".*-emr-.*", Destination: []*TagItem{{Name: "service", Value: "EMR"}}},
 				},
-			},
+			}, nil,
 		},
 		{
 			"prod-emr-analytics", map[string]string{"random": "tag"},
@@ -119,7 +147,7 @@ func TestGetFromKey(t *testing.T) {
 					{KeyPattern: ".*analytics.*", Destination: []*TagItem{{Name: "team", Value: "analytics"}, {Name: "service", Value: "should be ignored"}}},
 					{KeyPattern: ".*foo.*", Destination: []*TagItem{{Name: "component", Value: "foo"}}},
 				},
-			},
+			}, nil,
 		},
 		{
 			"prod-emr-analytics", map[string]string{"team": "data", "foo": "bar"},
@@ -131,14 +159,26 @@ func TestGetFromKey(t *testing.T) {
 					{KeyPattern: ".*analytics.*", Destination: []*TagItem{{Name: "team", Value: "analytics"}, {Name: "service", Value: "should be ignored"}}},
 					{KeyPattern: ".*foo.*", Destination: []*TagItem{{Name: "component", Value: "foo"}}},
 				},
-			},
+			}, nil,
+		},
+		{
+			"prod-emr-analytics", map[string]string{"team": "data", "foo": "bar"},
+			map[string]string{"service": "EMR"},
+			Mapper{
+				KeyMap: []*KeyMapper{
+					{KeyPattern: ".*-emr-.*", Destination: []*TagItem{{Name: "service", Value: "EMR"}}},
+					{KeyPattern: ".*p)rod.*", Destination: []*TagItem{{Name: "environment", Value: "prd"}}},
+					{KeyPattern: ".*analytics.*", Destination: []*TagItem{{Name: "team", Value: "analytics"}, {Name: "service", Value: "should be ignored"}}},
+					{KeyPattern: ".*foo.*", Destination: []*TagItem{{Name: "component", Value: "foo"}}},
+				},
+			}, &syntax.Error{Code: syntax.ErrUnexpectedParen, Expr: "(?i)^.*p)rod.*$"},
 		},
 	}
 
 	for _, d := range testData {
 		res, err := d.config.GetFromKey(d.inputKey, &d.inputTags)
-		if err != nil {
-			t.Fatalf("GetFromKey returned: %s\n", err)
+		if !reflect.DeepEqual(err, d.expectedError) {
+			t.Fatalf("GetFromKey returned: %v, expecting: %v\n", err, d.expectedError)
 		}
 		if !reflect.DeepEqual(d.expected, *res) {
 			t.Errorf("Expecting: %v\nGot: %v\n", d.expected, *res)

@@ -92,13 +92,13 @@ func (m *Mapper) GetFromTags(existingTags *map[string]string) (*map[string]strin
 	result := make(map[string]string)
 	tagCp, err := m.getFromTagCopy(existingTags)
 	if err != nil {
-		return nil, err
+		return &result, err
 	}
 	result = *tagCp
 
 	tagM, err := m.getFromTagMap(existingTags)
 	if err != nil {
-		return nil, err
+		return &result, err
 	}
 	// Because we update existingTags map at the same time, we don't need to worry
 	// about overwritten values
@@ -183,7 +183,7 @@ func (m *Mapper) GetFromKey(resourceKey string, existingTags *map[string]string)
 	result := make(map[string]string)
 	for _, keyM := range m.KeyMap {
 		if match, err = regexp.MatchString("(?i)^"+keyM.KeyPattern+"$", resourceKey); err != nil {
-			return nil, err
+			return &result, err
 		}
 		if match {
 			for _, dst := range keyM.Destination {

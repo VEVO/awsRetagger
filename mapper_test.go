@@ -153,13 +153,13 @@ func TestValidateTag(t *testing.T) {
 		expectedTag       TagItem
 		expectedError     error
 	}{
-		{"", "", Mapper{}, TagItem{Name: "", Value: ""}, NewErrSanityNoMapping("No sanity configuration found for the tag ")},
+		{"", "", Mapper{}, TagItem{Name: "", Value: ""}, NewErrSanityConfig("No sanity configuration found", "")},
 		{"foo", "bar", Mapper{
 			Sanity: []*TagSanity{
 				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},
 				{TagName: "team", Transform: map[string][]string{"infrastructure": {"sys.*", "devops", "drunks"}, "web": {"frontend", "html"}, "ricard": {}}},
 			},
-		}, TagItem{Name: "foo", Value: "bar"}, NewErrSanityNoMapping("No sanity configuration found for the tag foo")},
+		}, TagItem{Name: "foo", Value: "bar"}, NewErrSanityConfig("No sanity configuration found", "foo")},
 		{"team", "drunks", Mapper{
 			Sanity: []*TagSanity{
 				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},
@@ -171,7 +171,7 @@ func TestValidateTag(t *testing.T) {
 				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},
 				{TagName: "team", Transform: map[string][]string{"infrastructure": {"sys.*", "devops", "drunks"}, "web": {"frontend", "html"}, "ricard": {}}},
 			},
-		}, TagItem{Name: "env", Value: "local"}, NewErrSanityNoMapping("No match found for the sanity check for local on tag {\"env\": \"local\"}")},
+		}, TagItem{Name: "env", Value: "local"}, NewErrSanityNoMapping("No match found for the sanity check", "env", "local")},
 		{"env", "production", Mapper{
 			Sanity: []*TagSanity{
 				{TagName: "env", Transform: map[string][]string{"prd": {"prod.*", "global", "pdr"}, "stg": {"stag.*", "sgt"}, "dev": {"dev.*"}}},

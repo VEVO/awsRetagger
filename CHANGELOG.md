@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Use logrus as logging library and use the fields capabilities of logrus
   instead of string concatenation
+- There are now 2 types of errors out of the sanity checks and the corresponding
+  tag properties are available via `TagName` and `TagValue` attributes of the
+  error
 
 ### Added
 - Add the capability to log in text or json format based on user input

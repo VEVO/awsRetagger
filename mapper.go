@@ -227,9 +227,9 @@ func (m *Mapper) ValidateTag(tagName, tagValue string) (*TagItem, error) {
 				}
 			}
 		}
-		return &result, NewErrSanityNoMapping("No match found for the sanity check for " + tagValue + " on tag {\"" + tagName + "\": \"" + tagValue + "\"}")
+		return &result, NewErrSanityNoMapping("No match found for the sanity check", tagName, tagValue)
 	}
-	return &result, NewErrSanityNoMapping("No sanity configuration found for the tag " + tagName)
+	return &result, NewErrSanityConfig("No sanity configuration found", tagName)
 }
 
 // MergeMaps adds to mainMap the missing elements that are present in
@@ -271,7 +271,11 @@ func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []strin
 		if err != nil {
 			switch err.(type) {
 			case *ErrSanityNoMapping:
-				log.WithFields(logrus.Fields{"error": err, "resource": *resourceID}).Warn("Sanity check failed")
+				subErr, _ := err.(*ErrSanityNoMapping)
+				log.WithFields(logrus.Fields{"error": subErr, "resource": *resourceID, "tag_name": subErr.TagName, "tag_value": subErr.TagValue}).Info("Sanity check failed")
+			case *ErrSanityConfig:
+				subErr, _ := err.(*ErrSanityConfig)
+				log.WithFields(logrus.Fields{"error": subErr, "resource": *resourceID, "tag_name": subErr.TagName}).Warn("Sanity check failed")
 			default:
 				log.WithFields(logrus.Fields{"error": err}).Error("ValidateTag failed")
 			}
@@ -289,7 +293,11 @@ func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []strin
 		if err != nil {
 			switch err.(type) {
 			case *ErrSanityNoMapping:
-				log.WithFields(logrus.Fields{"error": err, "resource": *resourceID}).Warn("Sanity check failed")
+				subErr, _ := err.(*ErrSanityNoMapping)
+				log.WithFields(logrus.Fields{"error": subErr, "resource": *resourceID, "tag_name": subErr.TagName, "tag_value": subErr.TagValue}).Info("Sanity check failed")
+			case *ErrSanityConfig:
+				subErr, _ := err.(*ErrSanityConfig)
+				log.WithFields(logrus.Fields{"error": subErr, "resource": *resourceID, "tag_name": subErr.TagName}).Warn("Sanity check failed")
 			default:
 				log.WithFields(logrus.Fields{"error": err}).Error("ValidateTag failed")
 			}

@@ -267,44 +267,36 @@ func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []strin
 	// This part evaluates if the existing tags need to be updated
 	sanitized := make(map[string]string)
 	for k, v := range *tags {
-		sanitizedTag, err := m.ValidateTag(k, v)
-		if err != nil {
-			switch err.(type) {
-			case *ErrSanityNoMapping:
-				subErr, _ := err.(*ErrSanityNoMapping)
-				log.WithFields(logrus.Fields{"error": subErr, "resource": *resourceID, "tag_name": subErr.TagName, "tag_value": subErr.TagValue}).Info("Sanity check failed")
-			case *ErrSanityConfig:
-				subErr, _ := err.(*ErrSanityConfig)
-				log.WithFields(logrus.Fields{"error": subErr, "resource": *resourceID, "tag_name": subErr.TagName}).Warn("Sanity check failed")
-			default:
-				log.WithFields(logrus.Fields{"error": err}).Error("ValidateTag failed")
-			}
-		}
-		if sanitizedTag != nil {
-			if sanitizedTag.Value != v {
-				sanitized[k] = sanitizedTag.Value
-			}
+		if sanitizedTag := m.sanitize(resourceID, &k, &v); sanitizedTag != nil && sanitizedTag.Value != v {
+			sanitized[k] = sanitizedTag.Value
 		}
 	}
 	m.MergeMaps(newTags, &sanitized)
 
 	for k, v := range *newTags {
-		finalTag, err := m.ValidateTag(k, v)
-		if err != nil {
-			switch err.(type) {
-			case *ErrSanityNoMapping:
-				subErr, _ := err.(*ErrSanityNoMapping)
-				log.WithFields(logrus.Fields{"error": subErr, "resource": *resourceID, "tag_name": subErr.TagName, "tag_value": subErr.TagValue}).Info("Sanity check failed")
-			case *ErrSanityConfig:
-				subErr, _ := err.(*ErrSanityConfig)
-				log.WithFields(logrus.Fields{"error": subErr, "resource": *resourceID, "tag_name": subErr.TagName}).Warn("Sanity check failed")
-			default:
-				log.WithFields(logrus.Fields{"error": err}).Error("ValidateTag failed")
-			}
-		}
+		finalTag := m.sanitize(resourceID, &k, &v)
+
 		log.WithFields(logrus.Fields{"resource": *resourceID, "tag_name": (*finalTag).Name, "tag_value": (*finalTag).Value}).Debug("Setting tag on resource")
 		if err = setTag(resourceID, finalTag); err != nil {
 			log.WithFields(logrus.Fields{"error": err, "resource": *resourceID}).Error("Failed to set tag on resource")
 		}
 	}
+}
+
+// sanitize takes care of running the ValidateTag and logging warning and errors
+func (m *Mapper) sanitize(resourceID, tagName, tagValue *string) *TagItem {
+	sanitizedTag, err := m.ValidateTag(*tagName, *tagValue)
+	if err != nil {
+		switch err.(type) {
+		case *ErrSanityNoMapping:
+			subErr, _ := err.(*ErrSanityNoMapping)
+			log.WithFields(logrus.Fields{"error": subErr, "resource": *resourceID, "tag_name": subErr.TagName, "tag_value": subErr.TagValue}).Info("Sanity check failed")
+		case *ErrSanityConfig:
+			subErr, _ := err.(*ErrSanityConfig)
+			log.WithFields(logrus.Fields{"error": subErr, "resource": *resourceID, "tag_name": subErr.TagName}).Warn("Sanity check failed")
+		default:
+			log.WithFields(logrus.Fields{"error": err}).Error("ValidateTag failed")
+		}
+	}
+	return sanitizedTag
 }

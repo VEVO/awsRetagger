@@ -349,7 +349,7 @@ func TestRetag(t *testing.T) {
 	}{
 		// empty source tag and keys
 		{"my resource", map[string]string{}, []string{}, setTagTestFctSuccess, 3, map[string]string{"Env": "unknown", "Team": "unknown", "Service": "unknown"}, configWorking, nil},
-		// non-matching tag existence, emtpy key
+		// non-matching tag existence, empty key
 		{"my resource", map[string]string{"foo": "bar"}, []string{}, setTagTestFctSuccess, 4, map[string]string{"Env": "unknown", "Team": "unknown", "Service": "unknown"}, configWorking, nil},
 		// 1 matching tag existence with transformation, empty key
 		{"my resource", map[string]string{"Env": "prod", "Service": "whatever"}, []string{}, setTagTestFctSuccess, 2, map[string]string{"Env": "prd", "Team": "unknown"}, configWorking, nil},

@@ -22,7 +22,7 @@ func NewLogger(logLevel, format string, output io.Writer) (*logrus.Entry, error)
 	default:
 		return nil, fmt.Errorf("invalid format requested: %s", format)
 	}
-	logrus.SetOutput(os.Stdout)
+	logrus.SetOutput(output)
 
 	level, err := logrus.ParseLevel(logLevel)
 	if err != nil {

@@ -4,12 +4,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/aws/aws-sdk-go/service/cloudfront/cloudfrontiface"
 	"github.com/sirupsen/logrus"
 )
 
 // CloudFrontProcessor holds the cloudfront-related actions
 type CloudFrontProcessor struct {
-	svc *cloudfront.CloudFront
+	svc cloudfrontiface.CloudFrontAPI
 }
 
 // NewCloudFrontProcessor creates a new instance of CloudFrontProcessor containing an already

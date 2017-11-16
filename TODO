@@ -1,7 +1,4 @@
-* Update README
 * Add tests
-* use logrus: https://github.com/sirupsen/logrus
-* Centralized aws session creation
 * ec2.go add support for retagging:
   * ELB
   * ELB v2
@@ -11,6 +8,7 @@
   * EBS
 * rds.go: add parameter groups retagging
 * cloudfront.go: retag streaming distributions
+* redshift.go: add sec groups, snapshots, parameter groups support
 * add AWS services:
   * API Gateway
   * Kinesis

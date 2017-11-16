@@ -35,6 +35,9 @@ func (e *Ec2Processor) SetTags(resourceID *string, tags []*TagItem) error {
 		newTags = append(newTags, &ec2.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
 	}
 
+	if len(newTags) == 0 {
+		return nil
+	}
 	_, err := e.svc.CreateTags(&ec2.CreateTagsInput{Resources: []*string{resourceID}, Tags: newTags})
 	return err
 }

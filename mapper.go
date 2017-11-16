@@ -280,8 +280,10 @@ func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []strin
 		finalTags = append(finalTags, finalTag)
 	}
 
-	if err = setTags(resourceID, finalTags); err != nil {
-		log.WithFields(logrus.Fields{"error": err, "resource": *resourceID}).Error("Failed to set tag on resource")
+	if len(finalTags) != 0 {
+		if err = setTags(resourceID, finalTags); err != nil {
+			log.WithFields(logrus.Fields{"error": err, "resource": *resourceID}).Error("Failed to set tag on resource")
+		}
 	}
 }
 

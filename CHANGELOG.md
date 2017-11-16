@@ -11,11 +11,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - There are now 2 types of errors out of the sanity checks and the corresponding
   tag properties are available via `TagName` and `TagValue` attributes of the
   error
+- The tags are updated all at once for a resource instead of 1 update request
+  per tag
 
 ### Added
 - Add the capability to log in text or json format based on user input
 - Add the capability for the user to use different log levels
 - Support for retagging Redshift Clusters
+- Support for retagging ElasticBeanstalk Environments
 
 ## [0.0.1] - 2017-11-12
 ### Added

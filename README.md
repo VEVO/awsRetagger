@@ -103,9 +103,11 @@ The key elements of a resource are the following attribute (first come in the gi
 * a CloudFront Distribution: `Id`, `DomainName`, Origins' `DomainName`, `Aliases`, `Comment`
 * a CloudWatch LogGroup: `LogGroupName`
 * an EC2 Instance: SSH `KeyName`
+* an ElasticBeanstalk: `EnvironmentName`, `ApplicationName`, `CNAME`, `Description`
 * an ElasticSearch Domain: `DomainId`, `DomainName`
 * a RDS Instance: `DBClusterIdentifier`, `DBInstanceIdentifier`, `DBName`, `MasterUsername`
 * a RDS Cluster: `DBClusterIdentifier`, `DatabaseName`, `MasterUsername`
+* a Redshift Cluster: `ClusterIdentifier`, `DBName`, `MasterUsername`
 
 With the following configuration, an instance with a SSH KeyName set to
 `apple-tv-analytics-prod`, you'll end up with:
@@ -220,6 +222,8 @@ Usage of ./awsRetagger:
         Path of the json configuration file. Environment variable: CONFIG (default "config.json")
   -ec2-instances
         Enables the re-tagging of the EC2 instances. Environment variable: EC2_INSTANCES
+  -elasticbeanstalk-environments
+        Enables the re-tagging of the ElasticBeanstalk environments. Environment variable: ELASTICBEANSTALK_ENVIRONMENTS
   -elasticsearch
         Enables the re-tagging of the ElasticSearch domains. Environment variable: ELASTICSEARCH
   -log-format string
@@ -241,6 +245,7 @@ you might check using the `-h` option of the command-line):
 * CloudFront Distributions
 * CloudWatch LogGroups
 * EC2 Instances
+* ElasticBeanstalk environments
 * ElasticSearch Domains
 * RDS Instances
 * RDS Clusters

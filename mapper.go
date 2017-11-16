@@ -242,10 +242,10 @@ func (m *Mapper) MergeMaps(mainMap, complementary *map[string]string) {
 	}
 }
 
-type putTagFn func(*string, *TagItem) error
+type putTagFn func(*string, []*TagItem) error
 
-// Retag does the different re-tagging operations and calls the given setTag function
-func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []string, setTag putTagFn) {
+// Retag does the different re-tagging operations and calls the given setTags function
+func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []string, setTags putTagFn) {
 	var (
 		newTags, mapFromKey, mapFromMissing *map[string]string
 		err                                 error
@@ -273,13 +273,15 @@ func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []strin
 	}
 	m.MergeMaps(newTags, &sanitized)
 
+	finalTags := []*TagItem{}
 	for k, v := range *newTags {
 		finalTag := m.sanitize(resourceID, &k, &v)
+		log.WithFields(logrus.Fields{"resource": *resourceID, "tag_name": (*finalTag).Name, "tag_value": (*finalTag).Value}).Debug("Prepare to set tag on resource")
+		finalTags = append(finalTags, finalTag)
+	}
 
-		log.WithFields(logrus.Fields{"resource": *resourceID, "tag_name": (*finalTag).Name, "tag_value": (*finalTag).Value}).Debug("Setting tag on resource")
-		if err = setTag(resourceID, finalTag); err != nil {
-			log.WithFields(logrus.Fields{"error": err, "resource": *resourceID}).Error("Failed to set tag on resource")
-		}
+	if err = setTags(resourceID, finalTags); err != nil {
+		log.WithFields(logrus.Fields{"error": err, "resource": *resourceID}).Error("Failed to set tag on resource")
 	}
 }
 

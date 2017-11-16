@@ -33,7 +33,7 @@ func (m *mockCloudFrontClient) ListTagsForResource(input *cloudfront.ListTagsFor
 	return &cloudfront.ListTagsForResourceOutput{Tags: m.ResourceTags}, m.ReturnError
 }
 
-func TestCloudFrontSetTag(t *testing.T) {
+func TestCloudFrontSetTags(t *testing.T) {
 	testData := []struct {
 		inputResource, outputResource string
 		inputTag                      []*TagItem
@@ -49,11 +49,9 @@ func TestCloudFrontSetTag(t *testing.T) {
 		mockSvc := &mockCloudFrontClient{ReturnError: d.inputError, ResourceTags: &cloudfront.Tags{}}
 		p := CloudFrontProcessor{svc: mockSvc}
 
-		for _, itag := range d.inputTag {
-			err := p.SetTag(&d.inputResource, itag)
-			if !reflect.DeepEqual(err, d.outputError) {
-				t.Errorf("Expecting error: %v\nGot: %v\n", d.outputError, err)
-			}
+		err := p.SetTags(&d.inputResource, d.inputTag)
+		if !reflect.DeepEqual(err, d.outputError) {
+			t.Errorf("Expecting error: %v\nGot: %v\n", d.outputError, err)
 		}
 
 		if *mockSvc.ResourceID != d.outputResource {

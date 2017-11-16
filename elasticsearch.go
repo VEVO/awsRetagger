@@ -28,11 +28,16 @@ func (p *ElkProcessor) TagsToMap(tagsInput []*elasticsearchservice.Tag) map[stri
 	return tagsHash
 }
 
-// SetTag sets a tag on an elasticsearchservice resource
-func (p *ElkProcessor) SetTag(resourceID *string, tag *TagItem) error {
+// SetTags sets tags on an elasticsearchservice resource
+func (p *ElkProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+	newTags := []*elasticsearchservice.Tag{}
+	for _, tag := range tags {
+		newTags = append(newTags, &elasticsearchservice.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
+	}
+
 	input := &elasticsearchservice.AddTagsInput{
 		ARN:     resourceID,
-		TagList: []*elasticsearchservice.Tag{{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)}},
+		TagList: newTags,
 	}
 	_, err := p.svc.AddTags(input)
 	return err
@@ -74,6 +79,6 @@ func (p *ElkProcessor) RetagDomains(m *Mapper) {
 		if dom.DomainName != nil {
 			keys = append(keys, *dom.DomainName)
 		}
-		m.Retag(dom.ARN, &tags, keys, p.SetTag)
+		m.Retag(dom.ARN, &tags, keys, p.SetTags)
 	}
 }

@@ -309,11 +309,13 @@ func TestMergeMaps(t *testing.T) {
 // global map only used for the TestRetag function literal
 var testRetagUpdateTags = map[string]string{}
 
-func setTagTestFctSuccess(res *string, tag *TagItem) error {
-	testRetagUpdateTags[tag.Name] = tag.Value
+func setTagTestFctSuccess(res *string, tags []*TagItem) error {
+	for _, tag := range tags {
+		testRetagUpdateTags[tag.Name] = tag.Value
+	}
 	return nil
 }
-func setTagTestFctFailure(res *string, tag *TagItem) error {
+func setTagTestFctFailure(res *string, tag []*TagItem) error {
 	return errors.New("Badaboom")
 }
 

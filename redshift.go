@@ -39,11 +39,16 @@ func (p *RedshiftProcessor) TagsToMap(tagsInput []*redshift.TaggedResource) map[
 	return tagsHash
 }
 
-// SetTag sets a tag on an redshift resource
-func (p *RedshiftProcessor) SetTag(resourceID *string, tag *TagItem) error {
+// SetTags sets tags on an redshift resource
+func (p *RedshiftProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+	newTags := []*redshift.Tag{}
+	for _, tag := range tags {
+		newTags = append(newTags, &redshift.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
+	}
+
 	input := &redshift.CreateTagsInput{
 		ResourceName: resourceID,
-		Tags:         []*redshift.Tag{{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)}},
+		Tags:         newTags,
 	}
 	_, err := p.svc.CreateTags(input)
 	return err
@@ -87,7 +92,7 @@ func (p *RedshiftProcessor) RetagClusters(m *Mapper) {
 				if elt.MasterUsername != nil {
 					keys = append(keys, *elt.MasterUsername)
 				}
-				m.Retag(&clArn, &tags, keys, p.SetTag)
+				m.Retag(&clArn, &tags, keys, p.SetTags)
 			}
 			return !lastPage
 		})

@@ -35,7 +35,7 @@ func (m *mockRedshiftClient) DescribeTags(input *redshift.DescribeTagsInput) (*r
 	return &redshift.DescribeTagsOutput{TaggedResources: outTags}, m.ReturnError
 }
 
-func TestRedshiftSetTag(t *testing.T) {
+func TestRedshiftSetTags(t *testing.T) {
 	testData := []struct {
 		inputResource, outputResource string
 		inputTags                     []*TagItem
@@ -51,11 +51,9 @@ func TestRedshiftSetTag(t *testing.T) {
 		mockSvc := &mockRedshiftClient{ReturnError: d.inputError, ResourceTags: []*redshift.Tag{}}
 		p := RedshiftProcessor{svc: mockSvc}
 
-		for _, itag := range d.inputTags {
-			err := p.SetTag(&d.inputResource, itag)
-			if !reflect.DeepEqual(err, d.outputError) {
-				t.Errorf("Expecting error: %v\nGot: %v\n", d.outputError, err)
-			}
+		err := p.SetTags(&d.inputResource, d.inputTags)
+		if !reflect.DeepEqual(err, d.outputError) {
+			t.Errorf("Expecting error: %v\nGot: %v\n", d.outputError, err)
 		}
 
 		if *mockSvc.ResourceID != d.outputResource {

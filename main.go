@@ -38,9 +38,9 @@ func NewLogger(logLevel, format string, output io.Writer) (*logrus.Entry, error)
 
 func main() {
 	var (
-		configFilePath, logLevel, logFormat                                                                                                                            string
-		processEc2Instances, processRdsInstances, processRdsClusters, processCloudwatchLogGroups, processElasticSearch, processCloudFrontDist, processRedshiftClusters bool
-		err                                                                                                                                                            error
+		configFilePath, logLevel, logFormat                                                                                                                                                        string
+		processEc2Instances, processRdsInstances, processRdsClusters, processCloudwatchLogGroups, processElasticSearch, processCloudFrontDist, processRedshiftClusters, processElasticBeanstalkEnv bool
+		err                                                                                                                                                                                        error
 	)
 	flag.StringVar(&configFilePath, "config", "config.json", "Path of the json configuration file. Environment variable: CONFIG")
 	flag.StringVar(&logLevel, "log-level", "info", "Log level. Accepted values: debug, info, warn, error, fatal, panic. Environment variable: LOG_LEVEL")
@@ -52,6 +52,7 @@ func main() {
 	flag.BoolVar(&processElasticSearch, "elasticsearch", false, "Enables the re-tagging of the ElasticSearch domains. Environment variable: ELASTICSEARCH")
 	flag.BoolVar(&processCloudFrontDist, "cloudfront-distributions", false, "Enables the re-tagging of the CloudFront distributions. Environment variable: CLOUDFRONT_DISTRIBUTIONS")
 	flag.BoolVar(&processRedshiftClusters, "redshift-clusters", false, "Enables the re-tagging of the Redshift clusters. Environment variable: REDSHIFT_CLUSTERS")
+	flag.BoolVar(&processElasticBeanstalkEnv, "elasticbeanstalk-environments", false, "Enables the re-tagging of the ElasticBeanstalk environments. Environment variable: ELASTICBEANSTALK_ENVIRONMENTS")
 	envflag.Parse()
 
 	if log, err = NewLogger(logLevel, logFormat, os.Stdout); err != nil {
@@ -109,5 +110,9 @@ func main() {
 			log.WithFields(logrus.Fields{"error": err}).Fatal("Unable to initialize the Redshift client")
 		}
 		rs.RetagClusters(&m)
+	}
+	if processElasticBeanstalkEnv {
+		eb := NewElasticBeanstalkProcessor(sess)
+		eb.RetagEnvironments(&m)
 	}
 }

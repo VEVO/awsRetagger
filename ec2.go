@@ -28,9 +28,14 @@ func (e *Ec2Processor) TagsToMap(tagsInput []*ec2.Tag) map[string]string {
 	return tagsHash
 }
 
-// SetTag sets a tag on an ec2 resource
-func (e *Ec2Processor) SetTag(resourceID *string, tag *TagItem) error {
-	_, err := e.svc.CreateTags(&ec2.CreateTagsInput{Resources: []*string{resourceID}, Tags: []*ec2.Tag{{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)}}})
+// SetTags sets tags on an ec2 resource
+func (e *Ec2Processor) SetTags(resourceID *string, tags []*TagItem) error {
+	newTags := []*ec2.Tag{}
+	for _, tag := range tags {
+		newTags = append(newTags, &ec2.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
+	}
+
+	_, err := e.svc.CreateTags(&ec2.CreateTagsInput{Resources: []*string{resourceID}, Tags: newTags})
 	return err
 }
 
@@ -54,7 +59,7 @@ func (e *Ec2Processor) RetagInstances(m *Mapper) {
 			if instance.KeyName != nil {
 				keys = append(keys, *instance.KeyName)
 			}
-			m.Retag(instance.InstanceId, &tags, keys, e.SetTag)
+			m.Retag(instance.InstanceId, &tags, keys, e.SetTags)
 		}
 	}
 }

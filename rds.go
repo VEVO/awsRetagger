@@ -28,11 +28,16 @@ func (p *RdsProcessor) TagsToMap(tagsInput []*rds.Tag) map[string]string {
 	return tagsHash
 }
 
-// SetTag sets a tag on an rds resource
-func (p *RdsProcessor) SetTag(resourceID *string, tag *TagItem) error {
+// SetTags sets tags on an rds resource
+func (p *RdsProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+	newTags := []*rds.Tag{}
+	for _, tag := range tags {
+		newTags = append(newTags, &rds.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
+	}
+
 	input := &rds.AddTagsToResourceInput{
 		ResourceName: resourceID,
-		Tags:         []*rds.Tag{{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)}},
+		Tags:         newTags,
 	}
 	_, err := p.svc.AddTagsToResource(input)
 	return err
@@ -75,7 +80,7 @@ func (p *RdsProcessor) RetagInstances(m *Mapper) {
 		if instance.MasterUsername != nil {
 			keys = append(keys, *instance.MasterUsername)
 		}
-		m.Retag(instance.DBInstanceArn, &tags, keys, p.SetTag)
+		m.Retag(instance.DBInstanceArn, &tags, keys, p.SetTags)
 	}
 }
 
@@ -103,6 +108,6 @@ func (p *RdsProcessor) RetagClusters(m *Mapper) {
 		if cluster.MasterUsername != nil {
 			keys = append(keys, *cluster.MasterUsername)
 		}
-		m.Retag(cluster.DBClusterArn, &tags, keys, p.SetTag)
+		m.Retag(cluster.DBClusterArn, &tags, keys, p.SetTags)
 	}
 }

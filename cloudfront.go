@@ -29,11 +29,16 @@ func (p *CloudFrontProcessor) TagsToMap(tagsInput []*cloudfront.Tag) map[string]
 	return tagsHash
 }
 
-// SetTag sets a tag on an cloudfront resource
-func (p *CloudFrontProcessor) SetTag(resourceID *string, tag *TagItem) error {
+// SetTags sets tags on an cloudfront resource
+func (p *CloudFrontProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+	newTags := []*cloudfront.Tag{}
+	for _, tag := range tags {
+		newTags = append(newTags, &cloudfront.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
+	}
+
 	input := &cloudfront.TagResourceInput{
 		Resource: resourceID,
-		Tags:     &cloudfront.Tags{Items: []*cloudfront.Tag{{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)}}},
+		Tags:     &cloudfront.Tags{Items: newTags},
 	}
 	_, err := p.svc.TagResource(input)
 	return err
@@ -85,7 +90,7 @@ func (p *CloudFrontProcessor) RetagDistributions(m *Mapper) {
 					if dist.Comment != nil {
 						keys = append(keys, *dist.Comment)
 					}
-					m.Retag(dist.ARN, &tags, keys, p.SetTag)
+					m.Retag(dist.ARN, &tags, keys, p.SetTags)
 				}
 			}
 			return !lastPage

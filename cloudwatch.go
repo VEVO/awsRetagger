@@ -28,11 +28,16 @@ func (p *CwProcessor) TagsToMap(tagsInput map[string]*string) map[string]string 
 	return tagsHash
 }
 
-// SetTag sets a tag on an cloudwatchLog resource
-func (p *CwProcessor) SetTag(resourceID *string, tag *TagItem) error {
+// SetTags sets tags on an cloudwatchLog resource
+func (p *CwProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+	newTags := map[string]*string{}
+	for _, tag := range tags {
+		newTags[(*tag).Name] = aws.String((*tag).Value)
+	}
+
 	input := &cloudwatchlogs.TagLogGroupInput{
 		LogGroupName: resourceID,
-		Tags:         map[string]*string{(*tag).Name: aws.String((*tag).Value)},
+		Tags:         newTags,
 	}
 	_, err := p.svc.TagLogGroup(input)
 	return err
@@ -63,7 +68,7 @@ func (p *CwProcessor) RetagLogGroups(m *Mapper) {
 				if lg.LogGroupName != nil {
 					keys = append(keys, *lg.LogGroupName)
 				}
-				m.Retag(lg.LogGroupName, &tags, keys, p.SetTag)
+				m.Retag(lg.LogGroupName, &tags, keys, p.SetTags)
 			}
 			return !lastPage
 		})

@@ -25,7 +25,7 @@ func (m *mockCloudFrontClient) TagResource(input *cloudfront.TagResourceInput) (
 	if input.Tags != nil {
 		m.ResourceTags.Items = append(m.ResourceTags.Items, input.Tags.Items...)
 	}
-	return nil, m.ReturnError
+	return &cloudfront.TagResourceOutput{}, m.ReturnError
 }
 
 func (m *mockCloudFrontClient) ListTagsForResource(input *cloudfront.ListTagsForResourceInput) (*cloudfront.ListTagsForResourceOutput, error) {
@@ -33,7 +33,7 @@ func (m *mockCloudFrontClient) ListTagsForResource(input *cloudfront.ListTagsFor
 	return &cloudfront.ListTagsForResourceOutput{Tags: m.ResourceTags}, m.ReturnError
 }
 
-func TestSetTag(t *testing.T) {
+func TestCloudFrontSetTag(t *testing.T) {
 	testData := []struct {
 		inputResource, outputResource string
 		inputTag                      []*TagItem
@@ -66,7 +66,7 @@ func TestSetTag(t *testing.T) {
 	}
 }
 
-func TestGetTags(t *testing.T) {
+func TestCloudFrontGetTags(t *testing.T) {
 	testData := []struct {
 		inputResource, outputResource string
 		inputTags                     *cloudfront.Tags
@@ -97,7 +97,7 @@ func TestGetTags(t *testing.T) {
 	}
 }
 
-func TestTagsToMap(t *testing.T) {
+func TestCloudFrontTagsToMap(t *testing.T) {
 	testData := []struct {
 		inputTags  []*cloudfront.Tag
 		outputTags map[string]string

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Add the capability to log in text or json format based on user input
 - Add the capability for the user to use different log levels
+- Support for retagging Redshift Clusters
 
 ## [0.0.1] - 2017-11-12
 ### Added

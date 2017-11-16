@@ -230,6 +230,8 @@ Usage of ./awsRetagger:
         Enables the re-tagging of the RDS clusters. Environment variable: RDS_CLUSTERS
   -rds-instances
         Enables the re-tagging of the RDS instances. Environment variable: RDS_INSTANCES
+  -redshift-clusters
+        Enables the re-tagging of the Redshift clusters. Environment variable: REDSHIFT_CLUSTERS
 ```
 
 ## Supported resources
@@ -242,3 +244,4 @@ you might check using the `-h` option of the command-line):
 * ElasticSearch Domains
 * RDS Instances
 * RDS Clusters
+* Redshift Clusters

@@ -59,7 +59,7 @@ tag will get the content of the `environment` tag.
     {"sources": ["division"], "destination": "team"},
     {"sources": ["env", "environment", "environmetnt", "account", "environment.*"], "destination": "env"},
     {"sources": ["servi.*ce", "application", "applicaiton", "app", "project", "micro.service"], "destination": "service"}
-  ] 
+  ]
 ```
 
 ### The `tags` mapping
@@ -69,7 +69,7 @@ the content of a `source` tag. The name of the source tag is case-sensitive and 
 exact, but its value is a case-insensitive regular expression.
 
 In the example bellow we use several values of the `team`, `service` and `env`
-tags. The first math for a given destination tag will win. For example, if your
+tags. The first match for a given destination tag will win. For example, if your
 resource has a `Name` tag set to `myJenkins-Stg-Prd`, you will end up with:
 * a `team` tag set to `infrastructure`
 * a `service` tag set to `ci`
@@ -180,7 +180,7 @@ not set, it will be set to its corresponding value.
 :exclamation: **Important:** At the begining of the retagging process, the
 tags with the default value are stripped from the list of tags. That means that
 if you set to a value you want to be everywhere, the tags will be applied
-everytime. If you want to have a default valuenot overwritten, use the sanity
+everytime. If you want to have a default value not overwritten, use the sanity
 mapping (example, add "unknown" to the `prd` key when running it in the
 production account).
 

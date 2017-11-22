@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) 
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.1.0] - 2017-11-22
+
+1st public release
+
 ### Changed
 - Use logrus as logging library and use the fields capabilities of logrus
   instead of string concatenation
@@ -32,5 +35,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   * RDS Instances
   * RDS Clusters
 
-[Unreleased]: https://github.com/VEVO/awsRetagger/compare/0.0.1...HEAD
+[Unreleased]: https://github.com/VEVO/awsRetagger/compare/0.1.0...HEAD
+[0.1.0]: https://github.com/VEVO/awsRetagger/compare/0.0.1...0.1.0
 [0.0.1]: https://github.com/VEVO/awsRetagger/tree/0.0.1

@@ -13,6 +13,8 @@
     * [The sanity mapping](#the-sanity-mapping)
     * [The defaults mapping](#the-defaults-mapping)
   * [Using the tool](#using-the-tool)
+    * [Build and use locally with the command-line](#build-and-use-locally-with-the-command-line)
+    * [Use inside Docker](#use-inside-docker)
   * [Supported resources](#supported-resources)
 
 ## What's that?
@@ -200,6 +202,8 @@ to do some filtering more easily.
 
 ## Using the tool
 
+### Build and use locally with the command-line
+
 To build the tool, run `make build`. Once build, you can use the `-h` option to
 see the list of all options. All the options can be set using the corresponding
 environment variable.
@@ -236,6 +240,13 @@ Usage of ./awsRetagger:
         Enables the re-tagging of the RDS instances. Environment variable: RDS_INSTANCES
   -redshift-clusters
         Enables the re-tagging of the Redshift clusters. Environment variable: REDSHIFT_CLUSTERS
+```
+
+### Use inside Docker
+
+A docker image is build on every push and every tag. To get it:
+```
+docker pull vevo/awsretagger
 ```
 
 ## Supported resources

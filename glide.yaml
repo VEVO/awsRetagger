@@ -1,0 +1,22 @@
+package: github.com/VEVO/awsRetagger
+import:
+- package: github.com/aws/aws-sdk-go
+  version: ^1.12.32
+  subpackages:
+  - aws
+  - aws/arn
+  - aws/session
+  - service/cloudfront
+  - service/cloudfront/cloudfrontiface
+  - service/cloudwatchlogs
+  - service/ec2
+  - service/elasticbeanstalk
+  - service/elasticbeanstalk/elasticbeanstalkiface
+  - service/elasticsearchservice
+  - service/rds
+  - service/redshift
+  - service/redshift/redshiftiface
+  - service/sts
+- package: github.com/gobike/envflag
+- package: github.com/sirupsen/logrus
+  version: ^1.0.3

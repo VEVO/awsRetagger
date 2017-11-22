@@ -15,10 +15,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   per tag
 
 ### Added
-- Add the capability to log in text or json format based on user input
-- Add the capability for the user to use different log levels
+- Capability to log in text or json format based on user input
+- Capability for the user to use different log levels
 - Support for retagging Redshift Clusters
 - Support for retagging ElasticBeanstalk Environments
+- Automated Docker image build
 
 ## [0.0.1] - 2017-11-12
 ### Added

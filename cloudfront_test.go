@@ -2,11 +2,12 @@ package main
 
 import (
 	"errors"
+	"reflect"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/cloudfront/cloudfrontiface"
-	"reflect"
-	"testing"
 )
 
 type mockCloudFrontClient struct {

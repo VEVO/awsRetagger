@@ -4,12 +4,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go/service/rds/rdsiface"
 	"github.com/sirupsen/logrus"
 )
 
 // RdsProcessor holds the rds-related actions
 type RdsProcessor struct {
-	svc *rds.RDS
+	svc rdsiface.RDSAPI
 }
 
 // NewRdsProcessor creates a new instance of RdsProcessor containing an already

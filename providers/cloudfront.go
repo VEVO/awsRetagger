@@ -1,4 +1,4 @@
-package main
+package providers
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/cloudfront/cloudfrontiface"
 	"github.com/sirupsen/logrus"
+
+	"github.com/VEVO/awsRetagger/mapper"
 )
 
 // CloudFrontProcessor holds the cloudfront-related actions
@@ -30,7 +32,7 @@ func (p *CloudFrontProcessor) TagsToMap(tagsInput []*cloudfront.Tag) map[string]
 }
 
 // SetTags sets tags on an cloudfront resource
-func (p *CloudFrontProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+func (p *CloudFrontProcessor) SetTags(resourceID *string, tags []*mapper.TagItem) error {
 	newTags := []*cloudfront.Tag{}
 	for _, tag := range tags {
 		newTags = append(newTags, &cloudfront.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
@@ -59,7 +61,7 @@ func (p *CloudFrontProcessor) GetTags(resourceID *string) ([]*cloudfront.Tag, er
 }
 
 // RetagDistributions parses all distributions and retags them
-func (p *CloudFrontProcessor) RetagDistributions(m *Mapper) {
+func (p *CloudFrontProcessor) RetagDistributions(m *mapper.Mapper) {
 	err := p.svc.ListDistributionsPages(&cloudfront.ListDistributionsInput{},
 		func(page *cloudfront.ListDistributionsOutput, lastPage bool) bool {
 			if page.DistributionList != nil {

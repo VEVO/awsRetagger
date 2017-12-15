@@ -26,9 +26,13 @@ lint: fmt
 
 gocov:
 	@go get github.com/axw/gocov/gocov \
-	&& go install github.com/axw/gocov/gocov
-	@gocov test | gocov report
-	# gocov test >/tmp/gocovtest.json ; gocov annotate /tmp/gocovtest.json MyFunc
+	&& go install github.com/axw/gocov/gocov; \
+	if [ -f "glide.yaml" ] ; then \
+		gocov test $$(glide novendor) | gocov report; \
+	else \
+		gocov test ./... | gocov report; \
+	fi
+	# gocov test $$(glide novendor) >/tmp/gocovtest.json ; gocov annotate /tmp/gocovtest.json MyFunc
 
 test:
 	@if [ -f "glide.yaml" ] ; then \

@@ -1,4 +1,4 @@
-package main
+package providers
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/redshift/redshiftiface"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/sirupsen/logrus"
+
+	"github.com/VEVO/awsRetagger/mapper"
 )
 
 // RedshiftProcessor holds the redshift-related actions
@@ -40,7 +42,7 @@ func (p *RedshiftProcessor) TagsToMap(tagsInput []*redshift.TaggedResource) map[
 }
 
 // SetTags sets tags on an redshift resource
-func (p *RedshiftProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+func (p *RedshiftProcessor) SetTags(resourceID *string, tags []*mapper.TagItem) error {
 	newTags := []*redshift.Tag{}
 	for _, tag := range tags {
 		newTags = append(newTags, &redshift.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
@@ -72,7 +74,7 @@ func (p *RedshiftProcessor) getArn(resourceType, resourceIdentifier string) stri
 }
 
 // RetagClusters parses all clusters and retags them
-func (p *RedshiftProcessor) RetagClusters(m *Mapper) {
+func (p *RedshiftProcessor) RetagClusters(m *mapper.Mapper) {
 	err := p.svc.DescribeClustersPages(&redshift.DescribeClustersInput{},
 		func(page *redshift.DescribeClustersOutput, lastPage bool) bool {
 			for _, elt := range page.Clusters {

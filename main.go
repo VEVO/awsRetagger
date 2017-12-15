@@ -3,11 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
+	"os"
+
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/gobike/envflag"
 	"github.com/sirupsen/logrus"
-	"io"
-	"os"
+
+	"github.com/VEVO/awsRetagger/mapper"
+	"github.com/VEVO/awsRetagger/providers"
 )
 
 var log *logrus.Entry
@@ -38,9 +42,9 @@ func NewLogger(logLevel, format string, output io.Writer) (*logrus.Entry, error)
 
 func main() {
 	var (
-		configFilePath, logLevel, logFormat                                                                                                                                                        string
-		processEc2Instances, processRdsInstances, processRdsClusters, processCloudwatchLogGroups, processElasticSearch, processCloudFrontDist, processRedshiftClusters, processElasticBeanstalkEnv bool
-		err                                                                                                                                                                                        error
+		configFilePath, logLevel, logFormat                                                                                                                                                                          string
+		processEc2Instances, processRdsInstances, processRdsClusters, processCloudwatchLogGroups, processElasticSearch, processCloudFrontDist, processRedshiftClusters, processElasticBeanstalkEnv, processS3Buckets bool
+		err                                                                                                                                                                                                          error
 	)
 	flag.StringVar(&configFilePath, "config", "config.json", "Path of the json configuration file. Environment variable: CONFIG")
 	flag.StringVar(&logLevel, "log-level", "info", "Log level. Accepted values: debug, info, warn, error, fatal, panic. Environment variable: LOG_LEVEL")
@@ -53,12 +57,15 @@ func main() {
 	flag.BoolVar(&processCloudFrontDist, "cloudfront-distributions", false, "Enables the re-tagging of the CloudFront distributions. Environment variable: CLOUDFRONT_DISTRIBUTIONS")
 	flag.BoolVar(&processRedshiftClusters, "redshift-clusters", false, "Enables the re-tagging of the Redshift clusters. Environment variable: REDSHIFT_CLUSTERS")
 	flag.BoolVar(&processElasticBeanstalkEnv, "elasticbeanstalk-environments", false, "Enables the re-tagging of the ElasticBeanstalk environments. Environment variable: ELASTICBEANSTALK_ENVIRONMENTS")
+	flag.BoolVar(&processS3Buckets, "s3-buckets", false, "Enables the re-tagging of the S3 buckets. Environment variable: S3_BUCKETS")
 	envflag.Parse()
 
 	if log, err = NewLogger(logLevel, logFormat, os.Stdout); err != nil {
 		fmt.Printf("Error while setting up the logger: %s\n", err)
 		os.Exit(1)
 	}
+	mapper.SetLogger(log)
+	providers.SetLogger(log)
 	// Load config
 	cfg, err := os.Open(configFilePath)
 	defer cfg.Close()
@@ -66,7 +73,7 @@ func main() {
 		log.WithFields(logrus.Fields{"error": err}).Fatal("Unable to read config file")
 	}
 
-	m := Mapper{}
+	m := mapper.Mapper{}
 	if err = m.LoadConfig(cfg); err != nil {
 		log.WithFields(logrus.Fields{"error": err}).Fatal("Unable to load config file")
 	}
@@ -76,12 +83,12 @@ func main() {
 	}))
 
 	if processEc2Instances {
-		e := NewEc2Processor(sess)
+		e := providers.NewEc2Processor(sess)
 		e.RetagInstances(&m)
 	}
 
 	if processRdsInstances || processRdsClusters {
-		r := NewRdsProcessor(sess)
+		r := providers.NewRdsProcessor(sess)
 		if processRdsInstances {
 			r.RetagInstances(&m)
 		}
@@ -91,28 +98,33 @@ func main() {
 	}
 
 	if processCloudwatchLogGroups {
-		c := NewCwProcessor(sess)
+		c := providers.NewCwProcessor(sess)
 		c.RetagLogGroups(&m)
 	}
 
 	if processElasticSearch {
-		elk := NewElkProcessor(sess)
+		elk := providers.NewElkProcessor(sess)
 		elk.RetagDomains(&m)
 	}
 
 	if processCloudFrontDist {
-		cf := NewCloudFrontProcessor(sess)
+		cf := providers.NewCloudFrontProcessor(sess)
 		cf.RetagDistributions(&m)
 	}
 	if processRedshiftClusters {
-		rs, err := NewRedshiftProcessor(sess)
+		rs, err := providers.NewRedshiftProcessor(sess)
 		if err != nil {
 			log.WithFields(logrus.Fields{"error": err}).Fatal("Unable to initialize the Redshift client")
 		}
 		rs.RetagClusters(&m)
 	}
 	if processElasticBeanstalkEnv {
-		eb := NewElasticBeanstalkProcessor(sess)
+		eb := providers.NewElasticBeanstalkProcessor(sess)
 		eb.RetagEnvironments(&m)
+	}
+
+	if processS3Buckets {
+		sp := providers.NewS3Processor(sess)
+		sp.RetagBuckets(&m)
 	}
 }

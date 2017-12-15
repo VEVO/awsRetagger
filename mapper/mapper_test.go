@@ -1,13 +1,14 @@
-package main
+package mapper
 
 import (
 	"errors"
-	"github.com/sirupsen/logrus"
-	logrus_test "github.com/sirupsen/logrus/hooks/test"
 	"reflect"
 	"regexp/syntax"
 	"strings"
 	"testing"
+
+	"github.com/sirupsen/logrus"
+	logrus_test "github.com/sirupsen/logrus/hooks/test"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -343,7 +344,7 @@ func TestRetag(t *testing.T) {
 		resourceID    string
 		tags          map[string]string
 		keys          []string
-		setTags       putTagFn
+		setTags       PutTagFn
 		logEntries    int
 		expected      map[string]string
 		config        Mapper

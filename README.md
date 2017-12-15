@@ -110,6 +110,7 @@ The key elements of a resource are the following attribute (first come in the gi
 * a RDS Instance: `DBClusterIdentifier`, `DBInstanceIdentifier`, `DBName`, `MasterUsername`
 * a RDS Cluster: `DBClusterIdentifier`, `DatabaseName`, `MasterUsername`
 * a Redshift Cluster: `ClusterIdentifier`, `DBName`, `MasterUsername`
+* an S3 Bucket: `BucketName`
 
 With the following configuration, an instance with a SSH KeyName set to
 `apple-tv-analytics-prod`, you'll end up with:
@@ -240,6 +241,8 @@ Usage of ./awsRetagger:
         Enables the re-tagging of the RDS instances. Environment variable: RDS_INSTANCES
   -redshift-clusters
         Enables the re-tagging of the Redshift clusters. Environment variable: REDSHIFT_CLUSTERS
+  -s3-buckets
+        Enables the re-tagging of the S3 buckets. Environment variable: S3_BUCKETS
 ```
 
 ### Use inside Docker
@@ -261,3 +264,4 @@ you might check using the `-h` option of the command-line):
 * RDS Instances
 * RDS Clusters
 * Redshift Clusters
+* S3 Buckets

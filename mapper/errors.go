@@ -1,4 +1,4 @@
-package main
+package mapper
 
 // ErrSanityNoMapping is returned for the sanity checks in the Mapper
 type ErrSanityNoMapping struct {

@@ -1,10 +1,12 @@
-package main
+package providers
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
 	"github.com/sirupsen/logrus"
+
+	"github.com/VEVO/awsRetagger/mapper"
 )
 
 // ElkProcessor holds the elasticsearch-related actions
@@ -29,7 +31,7 @@ func (p *ElkProcessor) TagsToMap(tagsInput []*elasticsearchservice.Tag) map[stri
 }
 
 // SetTags sets tags on an elasticsearchservice resource
-func (p *ElkProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+func (p *ElkProcessor) SetTags(resourceID *string, tags []*mapper.TagItem) error {
 	newTags := []*elasticsearchservice.Tag{}
 	for _, tag := range tags {
 		newTags = append(newTags, &elasticsearchservice.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
@@ -54,7 +56,7 @@ func (p *ElkProcessor) GetTags(resourceID *string) ([]*elasticsearchservice.Tag,
 }
 
 // RetagDomains parses all elasticsearch domains and retags them
-func (p *ElkProcessor) RetagDomains(m *Mapper) {
+func (p *ElkProcessor) RetagDomains(m *mapper.Mapper) {
 	result, err := p.svc.ListDomainNames(&elasticsearchservice.ListDomainNamesInput{})
 	if err != nil {
 		log.WithFields(logrus.Fields{"error": err}).Fatal("ListDomainNames failed")

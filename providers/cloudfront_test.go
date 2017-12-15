@@ -1,4 +1,4 @@
-package main
+package providers
 
 import (
 	"errors"
@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/cloudfront/cloudfrontiface"
+
+	"github.com/VEVO/awsRetagger/mapper"
 )
 
 type mockCloudFrontClient struct {
@@ -37,14 +39,14 @@ func (m *mockCloudFrontClient) ListTagsForResource(input *cloudfront.ListTagsFor
 func TestCloudFrontSetTags(t *testing.T) {
 	testData := []struct {
 		inputResource, outputResource string
-		inputTag                      []*TagItem
+		inputTag                      []*mapper.TagItem
 		outputTag                     *cloudfront.Tags
 		inputError, outputError       error
 	}{
-		{"my resource", "my resource", []*TagItem{{}}, &cloudfront.Tags{Items: []*cloudfront.Tag{{Key: aws.String(""), Value: aws.String("")}}}, nil, nil},
-		{"my resource", "my resource", []*TagItem{{Name: "foo", Value: "bar"}}, &cloudfront.Tags{Items: []*cloudfront.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}}, nil, nil},
-		{"my resource", "my resource", []*TagItem{{Name: "foo", Value: "bar"}, {Name: "Aerosmith", Value: "rocks"}}, &cloudfront.Tags{Items: []*cloudfront.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}, {Key: aws.String("Aerosmith"), Value: aws.String("rocks")}}}, nil, nil},
-		{"my resource", "my resource", []*TagItem{{Name: "foo", Value: "bar"}}, &cloudfront.Tags{Items: []*cloudfront.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}}, errors.New("Badaboom"), errors.New("Badaboom")},
+		{"my resource", "my resource", []*mapper.TagItem{{}}, &cloudfront.Tags{Items: []*cloudfront.Tag{{Key: aws.String(""), Value: aws.String("")}}}, nil, nil},
+		{"my resource", "my resource", []*mapper.TagItem{{Name: "foo", Value: "bar"}}, &cloudfront.Tags{Items: []*cloudfront.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}}, nil, nil},
+		{"my resource", "my resource", []*mapper.TagItem{{Name: "foo", Value: "bar"}, {Name: "Aerosmith", Value: "rocks"}}, &cloudfront.Tags{Items: []*cloudfront.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}, {Key: aws.String("Aerosmith"), Value: aws.String("rocks")}}}, nil, nil},
+		{"my resource", "my resource", []*mapper.TagItem{{Name: "foo", Value: "bar"}}, &cloudfront.Tags{Items: []*cloudfront.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}}, errors.New("Badaboom"), errors.New("Badaboom")},
 	}
 	for _, d := range testData {
 		mockSvc := &mockCloudFrontClient{ReturnError: d.inputError, ResourceTags: &cloudfront.Tags{}}

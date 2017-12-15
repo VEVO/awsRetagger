@@ -1,10 +1,12 @@
-package main
+package providers
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/sirupsen/logrus"
+
+	"github.com/VEVO/awsRetagger/mapper"
 )
 
 // CwProcessor holds the cloudwatch-related actions
@@ -29,7 +31,7 @@ func (p *CwProcessor) TagsToMap(tagsInput map[string]*string) map[string]string 
 }
 
 // SetTags sets tags on an cloudwatchLog resource
-func (p *CwProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+func (p *CwProcessor) SetTags(resourceID *string, tags []*mapper.TagItem) error {
 	newTags := map[string]*string{}
 	for _, tag := range tags {
 		newTags[(*tag).Name] = aws.String((*tag).Value)
@@ -54,7 +56,7 @@ func (p *CwProcessor) GetTags(resourceID *string) (map[string]*string, error) {
 }
 
 // RetagLogGroups parses all running and stopped instances and retags them
-func (p *CwProcessor) RetagLogGroups(m *Mapper) {
+func (p *CwProcessor) RetagLogGroups(m *mapper.Mapper) {
 	err := p.svc.DescribeLogGroupsPages(&cloudwatchlogs.DescribeLogGroupsInput{},
 		func(page *cloudwatchlogs.DescribeLogGroupsOutput, lastPage bool) bool {
 			for _, lg := range page.LogGroups {

@@ -1,3 +1,6 @@
+# TODO list
+
+Few ideas that might be worth exploring:
 * Add tests
 * ec2.go add support for retagging:
   * ELB
@@ -16,7 +19,6 @@
   * DataPipeline
   * Elasticache
   * ElasticBeanstalk
-  * S3
   * Lambda
   * Route53
   * Simpledb

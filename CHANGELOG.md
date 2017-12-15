@@ -6,8 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Moved mapper and providers to separate packages for easier management
+
 ### Added
 - Add more unit tests
+- Add support for retagging s3 buckets
+- Add an interface and a Mocking base class for the mapper for easier unit
+  testing
 
 ## [0.1.0] - 2017-11-22
 

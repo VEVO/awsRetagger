@@ -1,11 +1,17 @@
-package main
+package mapper
 
 import (
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"io"
 	"regexp"
+
+	"github.com/sirupsen/logrus"
 )
+
+var log *logrus.Entry
+
+// SetLogger is used to pass the loger from the main program
+func SetLogger(logger *logrus.Entry) { log = logger }
 
 // TagItem is a standard AWS tag structure
 type TagItem struct {
@@ -48,6 +54,7 @@ type TagSanity struct {
 // Mapper contains the different mappings between attributes and the list of
 // tags that should be present on that resource
 type Mapper struct {
+	Iface
 	CopyTag          []*TagCopy        `json:"copy_tags,omitempty"`
 	TagMap           []*TagMapper      `json:"tags,omitempty"`
 	KeyMap           []*KeyMapper      `json:"keys,omitempty"`
@@ -242,10 +249,8 @@ func (m *Mapper) MergeMaps(mainMap, complementary *map[string]string) {
 	}
 }
 
-type putTagFn func(*string, []*TagItem) error
-
 // Retag does the different re-tagging operations and calls the given setTags function
-func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []string, setTags putTagFn) {
+func (m *Mapper) Retag(resourceID *string, tags *map[string]string, keys []string, setTags PutTagFn) {
 	var (
 		newTags, mapFromKey, mapFromMissing *map[string]string
 		err                                 error

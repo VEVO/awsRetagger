@@ -1,4 +1,4 @@
-package main
+package providers
 
 import (
 	"errors"
@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/rds/rdsiface"
+
+	"github.com/VEVO/awsRetagger/mapper"
 )
 
 type mockRdsClient struct {
@@ -56,14 +58,14 @@ func TestRdsTagsToMap(t *testing.T) {
 func TestRdsSetTags(t *testing.T) {
 	testData := []struct {
 		inputResource, outputResource string
-		inputTags                     []*TagItem
+		inputTags                     []*mapper.TagItem
 		outputTags                    []*rds.Tag
 		inputError, outputError       error
 	}{
-		{"my resource", "my resource", []*TagItem{{}}, []*rds.Tag{{Key: aws.String(""), Value: aws.String("")}}, nil, nil},
-		{"my resource", "my resource", []*TagItem{{Name: "foo", Value: "bar"}}, []*rds.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}, nil, nil},
-		{"my resource", "my resource", []*TagItem{{Name: "foo", Value: "bar"}, {Name: "Aerosmith", Value: "rocks"}}, []*rds.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}, {Key: aws.String("Aerosmith"), Value: aws.String("rocks")}}, nil, nil},
-		{"my resource", "my resource", []*TagItem{{Name: "foo", Value: "bar"}}, []*rds.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}, errors.New("Badaboom"), errors.New("Badaboom")},
+		{"my resource", "my resource", []*mapper.TagItem{{}}, []*rds.Tag{{Key: aws.String(""), Value: aws.String("")}}, nil, nil},
+		{"my resource", "my resource", []*mapper.TagItem{{Name: "foo", Value: "bar"}}, []*rds.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}, nil, nil},
+		{"my resource", "my resource", []*mapper.TagItem{{Name: "foo", Value: "bar"}, {Name: "Aerosmith", Value: "rocks"}}, []*rds.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}, {Key: aws.String("Aerosmith"), Value: aws.String("rocks")}}, nil, nil},
+		{"my resource", "my resource", []*mapper.TagItem{{Name: "foo", Value: "bar"}}, []*rds.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}, errors.New("Badaboom"), errors.New("Badaboom")},
 	}
 	for _, d := range testData {
 		mockSvc := &mockRdsClient{ReturnError: d.inputError, ResourceTags: []*rds.Tag{}}

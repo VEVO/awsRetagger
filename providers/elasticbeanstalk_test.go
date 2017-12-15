@@ -1,10 +1,11 @@
-package main
+package providers
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	"reflect"
 	"testing"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 )
 
 func TestElasticBeanstalkTagsToMap(t *testing.T) {

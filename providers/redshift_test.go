@@ -1,12 +1,15 @@
-package main
+package providers
 
 import (
 	"errors"
+	"reflect"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/redshift/redshiftiface"
-	"reflect"
-	"testing"
+
+	"github.com/VEVO/awsRetagger/mapper"
 )
 
 type mockRedshiftClient struct {
@@ -38,14 +41,14 @@ func (m *mockRedshiftClient) DescribeTags(input *redshift.DescribeTagsInput) (*r
 func TestRedshiftSetTags(t *testing.T) {
 	testData := []struct {
 		inputResource, outputResource string
-		inputTags                     []*TagItem
+		inputTags                     []*mapper.TagItem
 		outputTags                    []*redshift.Tag
 		inputError, outputError       error
 	}{
-		{"my resource", "my resource", []*TagItem{{}}, []*redshift.Tag{{Key: aws.String(""), Value: aws.String("")}}, nil, nil},
-		{"my resource", "my resource", []*TagItem{{Name: "foo", Value: "bar"}}, []*redshift.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}, nil, nil},
-		{"my resource", "my resource", []*TagItem{{Name: "foo", Value: "bar"}, {Name: "Aerosmith", Value: "rocks"}}, []*redshift.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}, {Key: aws.String("Aerosmith"), Value: aws.String("rocks")}}, nil, nil},
-		{"my resource", "my resource", []*TagItem{{Name: "foo", Value: "bar"}}, []*redshift.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}, errors.New("Badaboom"), errors.New("Badaboom")},
+		{"my resource", "my resource", []*mapper.TagItem{{}}, []*redshift.Tag{{Key: aws.String(""), Value: aws.String("")}}, nil, nil},
+		{"my resource", "my resource", []*mapper.TagItem{{Name: "foo", Value: "bar"}}, []*redshift.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}, nil, nil},
+		{"my resource", "my resource", []*mapper.TagItem{{Name: "foo", Value: "bar"}, {Name: "Aerosmith", Value: "rocks"}}, []*redshift.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}, {Key: aws.String("Aerosmith"), Value: aws.String("rocks")}}, nil, nil},
+		{"my resource", "my resource", []*mapper.TagItem{{Name: "foo", Value: "bar"}}, []*redshift.Tag{{Key: aws.String("foo"), Value: aws.String("bar")}}, errors.New("Badaboom"), errors.New("Badaboom")},
 	}
 	for _, d := range testData {
 		mockSvc := &mockRedshiftClient{ReturnError: d.inputError, ResourceTags: []*redshift.Tag{}}

@@ -1,4 +1,4 @@
-package main
+package providers
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/elasticbeanstalk"
 	"github.com/aws/aws-sdk-go/service/elasticbeanstalk/elasticbeanstalkiface"
 	"github.com/sirupsen/logrus"
+
+	"github.com/VEVO/awsRetagger/mapper"
 )
 
 // ElasticBeanstalkProcessor holds the elasticbeanstalk-related actions
@@ -30,7 +32,7 @@ func (p *ElasticBeanstalkProcessor) TagsToMap(tagsInput []*elasticbeanstalk.Tag)
 }
 
 // SetTags sets a group of tag on an elasticbeanstalk resource
-func (p *ElasticBeanstalkProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+func (p *ElasticBeanstalkProcessor) SetTags(resourceID *string, tags []*mapper.TagItem) error {
 	newTags := []*elasticbeanstalk.Tag{}
 	for _, tag := range tags {
 		if (*tag).Name != "elasticbeanstalk:environment-name" && (*tag).Name != "elasticbeanstalk:environment-id" {
@@ -59,7 +61,7 @@ func (p *ElasticBeanstalkProcessor) GetTags(resourceID *string) ([]*elasticbeans
 }
 
 // RetagEnvironments parses all environments and retags them
-func (p *ElasticBeanstalkProcessor) RetagEnvironments(m *Mapper) {
+func (p *ElasticBeanstalkProcessor) RetagEnvironments(m *mapper.Mapper) {
 	envs, err := p.svc.DescribeEnvironments(&elasticbeanstalk.DescribeEnvironmentsInput{IncludeDeleted: aws.Bool(false)})
 	if err != nil {
 		log.WithFields(logrus.Fields{"error": err}).Fatal("DescribeEnvironments failed")

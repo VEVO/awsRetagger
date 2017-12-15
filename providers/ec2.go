@@ -1,10 +1,12 @@
-package main
+package providers
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sirupsen/logrus"
+
+	"github.com/VEVO/awsRetagger/mapper"
 )
 
 // Ec2Processor holds the ec2-related actions
@@ -29,7 +31,7 @@ func (e *Ec2Processor) TagsToMap(tagsInput []*ec2.Tag) map[string]string {
 }
 
 // SetTags sets tags on an ec2 resource
-func (e *Ec2Processor) SetTags(resourceID *string, tags []*TagItem) error {
+func (e *Ec2Processor) SetTags(resourceID *string, tags []*mapper.TagItem) error {
 	newTags := []*ec2.Tag{}
 	for _, tag := range tags {
 		newTags = append(newTags, &ec2.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
@@ -43,7 +45,7 @@ func (e *Ec2Processor) SetTags(resourceID *string, tags []*TagItem) error {
 }
 
 // RetagInstances parses all running and stopped instances and retags them
-func (e *Ec2Processor) RetagInstances(m *Mapper) {
+func (e *Ec2Processor) RetagInstances(m *mapper.Mapper) {
 	filters := []*ec2.Filter{
 		{
 			Name:   aws.String("instance-state-name"),

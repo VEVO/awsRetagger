@@ -1,4 +1,4 @@
-package main
+package providers
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/rds/rdsiface"
 	"github.com/sirupsen/logrus"
+
+	"github.com/VEVO/awsRetagger/mapper"
 )
 
 // RdsProcessor holds the rds-related actions
@@ -30,7 +32,7 @@ func (p *RdsProcessor) TagsToMap(tagsInput []*rds.Tag) map[string]string {
 }
 
 // SetTags sets tags on an rds resource
-func (p *RdsProcessor) SetTags(resourceID *string, tags []*TagItem) error {
+func (p *RdsProcessor) SetTags(resourceID *string, tags []*mapper.TagItem) error {
 	newTags := []*rds.Tag{}
 	for _, tag := range tags {
 		newTags = append(newTags, &rds.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
@@ -55,7 +57,7 @@ func (p *RdsProcessor) GetTags(resourceID *string) ([]*rds.Tag, error) {
 }
 
 // RetagInstances parses all instances and retags them
-func (p *RdsProcessor) RetagInstances(m *Mapper) {
+func (p *RdsProcessor) RetagInstances(m *mapper.Mapper) {
 	result, err := p.svc.DescribeDBInstances(&rds.DescribeDBInstancesInput{})
 	if err != nil {
 		log.WithFields(logrus.Fields{"error": err}).Fatalf("DescribeDBInstances failed")
@@ -86,7 +88,7 @@ func (p *RdsProcessor) RetagInstances(m *Mapper) {
 }
 
 // RetagClusters parses all clusters and retags them
-func (p *RdsProcessor) RetagClusters(m *Mapper) {
+func (p *RdsProcessor) RetagClusters(m *mapper.Mapper) {
 	result, err := p.svc.DescribeDBClusters(&rds.DescribeDBClustersInput{})
 	if err != nil {
 		log.WithFields(logrus.Fields{"error": err}).Fatalf("DescribeDBClusters failed")

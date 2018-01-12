@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/sirupsen/logrus"
 
 	"github.com/VEVO/awsRetagger/mapper"
@@ -11,7 +12,7 @@ import (
 
 // Ec2Processor holds the ec2-related actions
 type Ec2Processor struct {
-	svc *ec2.EC2
+	svc ec2iface.EC2API
 }
 
 // NewEc2Processor creates a new instance of Ec2Processor containing an already
@@ -34,7 +35,9 @@ func (e *Ec2Processor) TagsToMap(tagsInput []*ec2.Tag) map[string]string {
 func (e *Ec2Processor) SetTags(resourceID *string, tags []*mapper.TagItem) error {
 	newTags := []*ec2.Tag{}
 	for _, tag := range tags {
-		newTags = append(newTags, &ec2.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
+		if len((*tag).Name) > 0 {
+			newTags = append(newTags, &ec2.Tag{Key: aws.String((*tag).Name), Value: aws.String((*tag).Value)})
+		}
 	}
 
 	if len(newTags) == 0 {

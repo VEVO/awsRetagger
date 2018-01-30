@@ -247,7 +247,7 @@ Usage of ./awsRetagger:
 
 ### Use inside Docker
 
-A docker image is build on every push and every tag. To get it:
+A docker image is built on every push and every tag. To get it:
 ```
 docker pull vevo/awsretagger
 ```

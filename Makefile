@@ -10,6 +10,8 @@ BUILD_VERSION?=1.0.$(shell date +%Y%m%d)
 BUILD_TAG=$(IMAGE_NAME):$(BUILD_VERSION)
 LATEST_TAG=$(IMAGE_NAME):latest
 
+PHONY: go-build
+
 docker-lint:
 	docker run -it --rm -v "${PWD}/Dockerfile":/Dockerfile:ro redcoolbeans/dockerlint
 

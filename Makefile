@@ -70,6 +70,11 @@ go-build: go-dep go-lint go-test
 go-compile:
 	@docker run --rm -v "$${PWD}":/go/src/github.com/VEVO/$(APP_NAME) -w /go/src/github.com/VEVO/$(APP_NAME) -e GOARCH=amd64 -e GOOS=linux -e CGO_ENABLED=0 -e BUILD_VERSION=$(BUILD_VERSION) golang:alpine make go-build
 
-build: docker-lint docker-build docker-tag docker-push
+build: docker-lint docker-build
+
+release: build docker-tag docker-push
+	git tag -s $(BUILD_VERSION)
+	# We skip publish for now for sanity purposes
+	goreleaser release --skip-publish
 
 # vim: ft=make

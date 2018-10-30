@@ -5,6 +5,7 @@
 
 ## Table of Contents
 
+  * [Using the tool](#using-the-tool)
   * [What's that?](#whats-that)
   * [How does it work?](#how-does-it-work)
     * [The copy_tag mapping](#the-copy_tag-mapping)
@@ -16,6 +17,12 @@
     * [Build and use locally with the command-line](#build-and-use-locally-with-the-command-line)
     * [Use inside Docker](#use-inside-docker)
   * [Supported resources](#supported-resources)
+
+## Using the tool
+
+The easiest way is to go to the [releases page](https://github.com/VEVO/awsRetagger/releases)
+and download the binary corresponding to your platform. You can also get the Docker images using
+the commands given at the end of each releases.
 
 ## What's that?
 

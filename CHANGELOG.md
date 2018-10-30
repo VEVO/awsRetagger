@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Moved mapper and providers to separate packages for easier management
+- Use goreleaser to make the releases
+- Simplify the build process
 
 ### Added
 - Add more unit tests

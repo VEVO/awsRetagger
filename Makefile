@@ -60,6 +60,6 @@ build: go-build
 release:
 	git tag -s $(BUILD_VERSION) -m "Release $(BUILD_VERSION)"
 	# We skip publish for now for sanity purposes
-	goreleaser release --rm-dist --skip-publish
+	goreleaser release --rm-dist
 
 # vim: ft=make

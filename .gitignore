@@ -16,3 +16,4 @@ vendor/
 
 awsRetagger
 config.json
+dist/

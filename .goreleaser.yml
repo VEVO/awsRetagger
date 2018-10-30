@@ -1,4 +1,3 @@
-project_name: awsRetagger
 before:
   hooks:
     - make go-dep
@@ -36,10 +35,10 @@ dockers:
     # GOARCH of the built binary that should be used.
     goarch: amd64
     image_templates:
-    - "vevo/{{.ProjectName}}:latest"
-    - "vevo/{{.ProjectName}}:{{ .Tag }}"
+    - "vevo/awsretagger:latest"
+    - "vevo/awsretagger:{{ .Tag }}"
     skip_push: false
     # Path to the Dockerfile (from the project root).
     dockerfile: Dockerfile
-    extra_files:
-    - /etc/ssl/certs/ca-certificates.crt
+    # extra_files:
+    # - /etc/ssl/certs/ca-certificates.crt

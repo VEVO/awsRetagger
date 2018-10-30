@@ -6,7 +6,7 @@ GO_REVISION?=$(shell git rev-parse HEAD)
 GO_TO_REVISION?=$(GO_REVISION)
 GO_FROM_REVISION?=$(shell git rev-parse refs/remotes/origin/master)
 GIT_TAG=$(IMAGE_NAME):$(GO_REVISION)
-BUILD_VERSION?=1.0.$(shell date +%Y%m%d)
+BUILD_VERSION?=$(shell date +%Y%m%d%H%M%S)-dev
 BUILD_TAG=$(IMAGE_NAME):$(BUILD_VERSION)
 LATEST_TAG=$(IMAGE_NAME):latest
 
@@ -17,18 +17,6 @@ docker-lint:
 
 docker-login:
 	@docker login -u "$(DOCKER_USER)" -p "$(DOCKER_PASS)"
-
-docker-build:
-	docker build --build-arg BUILD_VERSION=$(BUILD_VERSION) -t $(GIT_TAG) .
-
-docker-tag:
-	docker tag $(GIT_TAG) $(BUILD_TAG)
-	docker tag $(GIT_TAG) $(LATEST_TAG)
-
-docker-push: docker-login
-	docker push $(GIT_TAG)
-	docker push $(BUILD_TAG)
-	docker push $(LATEST_TAG)
 
 go-dep:
 	@if [ -f "glide.yaml" ] ; then \
@@ -67,14 +55,11 @@ go-test:
 go-build: go-dep go-lint go-test
 	@go build -v -a -ldflags "-X main.version=$(BUILD_VERSION)"
 
-go-compile:
-	@docker run --rm -v "$${PWD}":/go/src/github.com/VEVO/$(APP_NAME) -w /go/src/github.com/VEVO/$(APP_NAME) -e GOARCH=amd64 -e GOOS=linux -e CGO_ENABLED=0 -e BUILD_VERSION=$(BUILD_VERSION) golang:alpine make go-build
+build: go-build
 
-build: docker-lint docker-build
-
-release: build docker-tag docker-push
-	git tag -s $(BUILD_VERSION)
+release:
+	git tag -s $(BUILD_VERSION) -m "Release $(BUILD_VERSION)"
 	# We skip publish for now for sanity purposes
-	goreleaser release --skip-publish
+	goreleaser release --rm-dist --skip-publish
 
 # vim: ft=make
